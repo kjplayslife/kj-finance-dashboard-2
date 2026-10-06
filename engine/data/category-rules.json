@@ -1,0 +1,828 @@
+{
+ "_how": "First match wins. 'match' is a case-insensitive regex on the bank description. Optional: 'when' = in|out (money in or out), 'amount' = exact dollar amount, 'display' = clean name shown in the dashboard. Put your own rules near the top so they win. A refund on a credit card that matches a store rule becomes Income, or Reimbursed (with its purchase) when the amounts pair up. Rules for a category you don't use (e.g. Tithe) are skipped.",
+ "rules": [
+  {
+   "match": "AMEX EPAYMENT|AMERICAN EXPRESS.*(ACH|PMT|PAYMENT)",
+   "category": "Card Payments",
+   "display": "Amex Payment"
+  },
+  {
+   "match": "CITI CARD ONLINE PAYMENT|CITI AUTOPAY",
+   "category": "Card Payments",
+   "display": "Citi Payment"
+  },
+  {
+   "match": "CHASE CREDIT CRD|CHASE CARD.*(EPAY|AUTOPAY)",
+   "category": "Card Payments",
+   "display": "Chase Card Payment"
+  },
+  {
+   "match": "CAPITAL ONE.*(PMT|PAYMENT|MOBILE)|CAPITALONE",
+   "category": "Card Payments",
+   "display": "Capital One Payment"
+  },
+  {
+   "match": "DISCOVER.*(E-PAYMENT|PAYMENT)",
+   "category": "Card Payments",
+   "display": "Discover Payment"
+  },
+  {
+   "match": "BARCLAYCARD|SYNCHRONY|WELLS FARGO CARD|BK OF AMER.*CARD|BANK OF AMERICA.*(CREDIT|CARD)|APPLECARD|APPLE CARD GSBANK|GOLDMAN SACHS BANK",
+   "category": "Card Payments",
+   "display": "Card Payment"
+  },
+  {
+   "match": "^MOBILE PAYMENT - THANK YOU|^ONLINE PAYMENT,? THANK YOU|PAYMENT THANK YOU|AUTOMATIC PAYMENT - THANK|AUTOPAY PAYMENT|PAYMENT RECEIVED|INTERNET PAYMENT|ONLINE PAYMENT|ELECTRONIC PAYMENT|PAYMENT - THANK YOU",
+   "category": "Card Payments",
+   "when": "in",
+   "display": "Card Payment"
+  },
+  {
+   "match": "(INTERNET|ONLINE|MOBILE) TRANSFER|TRANSFER (TO|FROM) (SAV|CHK|CHECKING|SAVINGS)|ACCOUNT TRANSFER|BOOK TRANSFER|EXT TRNSFR|EXTERNAL TRANSFER",
+   "category": "Transfers",
+   "display": "Transfer"
+  },
+  {
+   "match": "ROBINHOOD|FIDELITY|VANGUARD|SCHWAB|BETTERMENT|WEALTHFRONT|ACORNS|COINBASE|E\\*?TRADE",
+   "category": "Transfers",
+   "display": "Investing"
+  },
+  {
+   "match": "PAYROLL|DIR DEP|DIRECT DEP|DIRECT DEPOSIT|SALARY|ADP|GUSTO|PAYCHEX|WAGES",
+   "category": "Income",
+   "when": "in",
+   "display": "Paycheck"
+  },
+  {
+   "match": "IRS TREAS|TAX REF|STATE OF .* TAX",
+   "category": "Income",
+   "when": "in",
+   "display": "Tax Refund"
+  },
+  {
+   "match": "STRIPE",
+   "category": "Income",
+   "when": "in",
+   "display": "Stripe Payout"
+  },
+  {
+   "match": "SHOPIFY",
+   "category": "Income",
+   "when": "in",
+   "display": "Shopify Payout"
+  },
+  {
+   "match": "YOUTUBE|GOOGLE ADSENSE",
+   "category": "Income",
+   "when": "in",
+   "display": "YouTube Payout"
+  },
+  {
+   "match": "INTEREST PAID|INTEREST EARNED|INTEREST PAYMENT|DIVIDEND",
+   "category": "Income",
+   "when": "in",
+   "display": "Interest"
+  },
+  {
+   "match": "VENMO",
+   "category": "Income",
+   "when": "in",
+   "display": "Venmo In"
+  },
+  {
+   "match": "ZELLE",
+   "category": "Income",
+   "when": "in",
+   "display": "Zelle In"
+  },
+  {
+   "match": "PAYPAL",
+   "category": "Income",
+   "when": "in",
+   "display": "PayPal In"
+  },
+  {
+   "match": "CASH APP|SQUARE CASH",
+   "category": "Income",
+   "when": "in",
+   "display": "Cash App In"
+  },
+  {
+   "match": "MOBILE DEPOSIT|ECHECK DEPOSIT|CHECK DEPOSIT|ATM DEPOSIT",
+   "category": "Income",
+   "when": "in",
+   "display": "Deposit"
+  },
+  {
+   "match": "POINTS FOR",
+   "category": "Income",
+   "when": "in",
+   "display": "Points Credit"
+  },
+  {
+   "match": "CHURCH|MINISTR|TITHE\\.LY|TITHELY|PUSHPAY|SUBSPLASH|PLANNING CENTER|ONEREALM",
+   "category": "Tithe",
+   "display": "Church / Giving"
+  },
+  {
+   "match": "\\bRENT\\b|RENT PAYMENT|APARTMENT|\\bAPTS\\b|PROPERTY MGMT|PROPERTY MANAGEMENT|MORTGAGE|LOAN SERVIC|ROCKET MORTGAGE|MR\\.? COOPER",
+   "category": "Rent and Utilities",
+   "display": "Rent / Mortgage"
+  },
+  {
+   "match": "ELECTRIC|DUKE ENERGY|DOMINION|GEORGIA POWER|\\bFPL\\b|PG&E|CON ?ED\\b|XCEL|ENTERGY|\\bAEP\\b",
+   "category": "Rent and Utilities",
+   "display": "Electric"
+  },
+  {
+   "match": "WATER (DEPT|UTIL|BILL|AUTH)|CITY OF .*(WATER|UTIL)|SEWER|WASTE MGMT|WASTE MANAGEMENT|REPUBLIC SERVICES",
+   "category": "Rent and Utilities",
+   "display": "Water / Trash"
+  },
+  {
+   "match": "PIEDMONT NATURAL|NATURAL GAS|\\bSPIRE\\b|ATMOS ENERGY|GAS CO\\b",
+   "category": "Rent and Utilities",
+   "display": "Gas (utility)"
+  },
+  {
+   "match": "AT&T|ATT PAYMENT|VERIZON|VZWRLSS|T-MOBILE|TMOBILE|SPRINT|MINT MOBILE|VISIBLE|CRICKET|XFINITY|COMCAST|SPECTRUM|COX COMM|GOOGLE FIBER|FRONTIER",
+   "category": "Rent and Utilities",
+   "display": "Phone / Internet"
+  },
+  {
+   "match": "LEMONADE|STATE FARM|GEICO|PROGRESSIVE|ALLSTATE|USAA|LIBERTY MUTUAL|ERENTERPLAN|NATIONWIDE|FARMERS INS",
+   "category": "Rent and Utilities",
+   "display": "Insurance"
+  },
+  {
+   "match": "SHELL OIL|SHELL SERVICE|\\bSHELL\\b|EXXON|\\bMOBIL\\b|CHEVRON|TEXACO|SUNOCO|SPEEDWAY|\\bBP\\b|BP#|CIRCLE K|RACETRAC|RACEWAY|QUIKTRIP|\\bQT \\d|WAWA|SHEETZ|MURPHY ?USA|MURPHY \\d|7-ELEVEN|VALERO|MARATHON PETRO|PILOT|LOVE'?S TRAVEL|LOVES #|CITGO|COSTCO GAS|SAMS CLUB FUEL|KROGER FUEL",
+   "category": "Gas & Auto",
+   "display": "Gas"
+  },
+  {
+   "match": "PARKING|PARKMOBILE|\\bDMV\\b|TOLL|EZPASS|E-ZPASS|SUNPASS|JIFFY LUBE|VALVOLINE|AUTOZONE|O'?REILLY|ADVANCE AUTO|PEP BOYS|DISCOUNT TIRE|FIRESTONE|CARMAX|UBER(?!.{0,3}EATS)|LYFT",
+   "category": "Gas & Auto",
+   "display": "Car / Transport"
+  },
+  {
+   "match": "INTEREST CHARGE|INTEREST CHARGED",
+   "category": "Fees",
+   "display": "Card Interest"
+  },
+  {
+   "match": "ANNUAL FEE|MEMBERSHIP FEE",
+   "category": "Fees",
+   "display": "Card Annual Fee"
+  },
+  {
+   "match": "LATE FEE|SERVICE FEE|OVERDRAFT|NSF FEE|MAINTENANCE FEE|ATM FEE|FOREIGN TRANSACTION FEE|WIRE FEE",
+   "category": "Fees",
+   "display": "Bank Fee"
+  },
+  {
+   "match": "NETFLIX",
+   "category": "Subscriptions",
+   "display": "Netflix"
+  },
+  {
+   "match": "SPOTIFY",
+   "category": "Subscriptions",
+   "display": "Spotify"
+  },
+  {
+   "match": "HULU",
+   "category": "Subscriptions",
+   "display": "Hulu"
+  },
+  {
+   "match": "DISNEY ?PLUS|DISNEYPLUS",
+   "category": "Subscriptions",
+   "display": "Disney+"
+  },
+  {
+   "match": "HBO ?MAX|\\bMAX\\.COM",
+   "category": "Subscriptions",
+   "display": "Max"
+  },
+  {
+   "match": "YOUTUBE ?PREMIUM|YOUTUBE ?TV|GOOGLE \\*YOUTUBE",
+   "category": "Subscriptions",
+   "display": "YouTube"
+  },
+  {
+   "match": "PEACOCK",
+   "category": "Subscriptions",
+   "display": "Peacock"
+  },
+  {
+   "match": "PARAMOUNT",
+   "category": "Subscriptions",
+   "display": "Paramount+"
+  },
+  {
+   "match": "AUDIBLE",
+   "category": "Subscriptions",
+   "display": "Audible"
+  },
+  {
+   "match": "Kindle Unltd",
+   "category": "Subscriptions",
+   "display": "Kindle Unlimited"
+  },
+  {
+   "match": "Amazon Digit|AMAZON DIGI",
+   "category": "Subscriptions",
+   "display": "Amazon Digital"
+  },
+  {
+   "match": "AMAZON PRIME|PRIME VIDEO",
+   "category": "Subscriptions",
+   "display": "Amazon Prime"
+  },
+  {
+   "match": "APPLE\\.COM/BILL|APPLE\\.COM BILL",
+   "category": "Subscriptions",
+   "display": "Apple"
+  },
+  {
+   "match": "GOOGLE \\*STORAGE|GOOGLE ONE|GOOGLE STORAGE",
+   "category": "Subscriptions",
+   "display": "Google One"
+  },
+  {
+   "match": "OPENAI|CHATGPT",
+   "category": "Subscriptions",
+   "display": "ChatGPT"
+  },
+  {
+   "match": "ANTHROPIC|CLAUDE\\.AI",
+   "category": "Subscriptions",
+   "display": "Claude"
+  },
+  {
+   "match": "MICROSOFT|MSFT \\*",
+   "category": "Subscriptions",
+   "display": "Microsoft"
+  },
+  {
+   "match": "ADOBE",
+   "category": "Subscriptions",
+   "display": "Adobe"
+  },
+  {
+   "match": "CANVA",
+   "category": "Subscriptions",
+   "display": "Canva"
+  },
+  {
+   "match": "NOTION",
+   "category": "Subscriptions",
+   "display": "Notion"
+  },
+  {
+   "match": "DROPBOX",
+   "category": "Subscriptions",
+   "display": "Dropbox"
+  },
+  {
+   "match": "^SQSP\\*|SQUARESPACE",
+   "category": "Subscriptions",
+   "display": "Squarespace"
+  },
+  {
+   "match": "PATREON",
+   "category": "Subscriptions",
+   "display": "Patreon"
+  },
+  {
+   "match": "SUBSTACK",
+   "category": "Subscriptions",
+   "display": "Substack"
+  },
+  {
+   "match": "PLANET FITNESS|LA FITNESS|ANYTIME FITNESS|ORANGETHEORY|CRUNCH FITNESS|EQUINOX|YMCA",
+   "category": "Subscriptions",
+   "display": "Gym"
+  },
+  {
+   "match": "PELOTON",
+   "category": "Subscriptions",
+   "display": "Peloton"
+  },
+  {
+   "match": "DOORDASHDASHPASS|DASHPASS",
+   "category": "Subscriptions",
+   "display": "DashPass"
+  },
+  {
+   "match": "UBER ONE",
+   "category": "Subscriptions",
+   "display": "Uber One"
+  },
+  {
+   "match": "INSTACART\\+|INSTACART PLUS",
+   "category": "Subscriptions",
+   "display": "Instacart+"
+  },
+  {
+   "match": "WALMART\\+|WMT PLUS",
+   "category": "Subscriptions",
+   "display": "Walmart+"
+  },
+  {
+   "match": "XBOX|PLAYSTATION|NINTENDO|STEAMGAMES|STEAM PURCHASE",
+   "category": "Subscriptions",
+   "display": "Games"
+  },
+  {
+   "match": "WHOLE ?FOODS|WFM",
+   "category": "Groceries",
+   "display": "Whole Foods"
+  },
+  {
+   "match": "TRADER JOE",
+   "category": "Groceries",
+   "display": "Trader Joe's"
+  },
+  {
+   "match": "INSTACART\\*ALDI|^ALDI|\\bALDI\\b",
+   "category": "Groceries",
+   "display": "Aldi"
+  },
+  {
+   "match": "INSTACART",
+   "category": "Groceries",
+   "display": "Instacart"
+  },
+  {
+   "match": "KROGER",
+   "category": "Groceries",
+   "display": "Kroger"
+  },
+  {
+   "match": "PUBLIX",
+   "category": "Groceries",
+   "display": "Publix"
+  },
+  {
+   "match": "HARRIS TEETER",
+   "category": "Groceries",
+   "display": "Harris Teeter"
+  },
+  {
+   "match": "FOOD LION",
+   "category": "Groceries",
+   "display": "Food Lion"
+  },
+  {
+   "match": "SAFEWAY",
+   "category": "Groceries",
+   "display": "Safeway"
+  },
+  {
+   "match": "ALBERTSONS",
+   "category": "Groceries",
+   "display": "Albertsons"
+  },
+  {
+   "match": "H-E-B|\\bHEB\\b",
+   "category": "Groceries",
+   "display": "H-E-B"
+  },
+  {
+   "match": "WEGMANS",
+   "category": "Groceries",
+   "display": "Wegmans"
+  },
+  {
+   "match": "SPROUTS",
+   "category": "Groceries",
+   "display": "Sprouts"
+  },
+  {
+   "match": "MEIJER",
+   "category": "Groceries",
+   "display": "Meijer"
+  },
+  {
+   "match": "GIANT|STOP & SHOP|HANNAFORD|SHOPRITE|WINN-DIXIE|INGLES|HY-VEE|FRY'?S|RALPHS|VONS|LOWES FOODS",
+   "category": "Groceries",
+   "display": "Groceries"
+  },
+  {
+   "match": "COSTCO",
+   "category": "Groceries",
+   "display": "Costco"
+  },
+  {
+   "match": "SAMS ?CLUB|SAMSCLUB",
+   "category": "Groceries",
+   "display": "Sam's Club"
+  },
+  {
+   "match": "BJ'?S WHOLESALE",
+   "category": "Groceries",
+   "display": "BJ's"
+  },
+  {
+   "match": "WM SUPERCENTER|WAL-MART|WALMART",
+   "category": "Groceries",
+   "display": "Walmart"
+  },
+  {
+   "match": "TARGET",
+   "category": "Groceries",
+   "display": "Target"
+  },
+  {
+   "match": "CVS",
+   "category": "Groceries",
+   "display": "CVS"
+  },
+  {
+   "match": "WALGREENS",
+   "category": "Groceries",
+   "display": "Walgreens"
+  },
+  {
+   "match": "PETSMART",
+   "category": "Groceries",
+   "display": "PetSmart"
+  },
+  {
+   "match": "PETCO",
+   "category": "Groceries",
+   "display": "Petco"
+  },
+  {
+   "match": "CHEWY",
+   "category": "Groceries",
+   "display": "Chewy"
+  },
+  {
+   "match": "UBER.{0,3}EATS",
+   "category": "Dining Out",
+   "display": "Uber Eats"
+  },
+  {
+   "match": "DOORDASH|DD \\*DOORDASH",
+   "category": "Dining Out",
+   "display": "DoorDash"
+  },
+  {
+   "match": "GRUBHUB",
+   "category": "Dining Out",
+   "display": "Grubhub"
+  },
+  {
+   "match": "CHICK-FIL-A|CHICK FIL A",
+   "category": "Dining Out",
+   "display": "Chick-fil-A"
+  },
+  {
+   "match": "MCDONALD",
+   "category": "Dining Out",
+   "display": "McDonald's"
+  },
+  {
+   "match": "STARBUCKS",
+   "category": "Dining Out",
+   "display": "Starbucks"
+  },
+  {
+   "match": "DUNKIN",
+   "category": "Dining Out",
+   "display": "Dunkin'"
+  },
+  {
+   "match": "CHIPOTLE",
+   "category": "Dining Out",
+   "display": "Chipotle"
+  },
+  {
+   "match": "PANERA",
+   "category": "Dining Out",
+   "display": "Panera"
+  },
+  {
+   "match": "TACO BELL",
+   "category": "Dining Out",
+   "display": "Taco Bell"
+  },
+  {
+   "match": "WENDY'?S",
+   "category": "Dining Out",
+   "display": "Wendy's"
+  },
+  {
+   "match": "BURGER KING",
+   "category": "Dining Out",
+   "display": "Burger King"
+  },
+  {
+   "match": "SUBWAY",
+   "category": "Dining Out",
+   "display": "Subway"
+  },
+  {
+   "match": "DOMINO",
+   "category": "Dining Out",
+   "display": "Domino's"
+  },
+  {
+   "match": "PIZZA HUT",
+   "category": "Dining Out",
+   "display": "Pizza Hut"
+  },
+  {
+   "match": "PAPA JOHN",
+   "category": "Dining Out",
+   "display": "Papa John's"
+  },
+  {
+   "match": "JERSEY MIKE",
+   "category": "Dining Out",
+   "display": "Jersey Mike's"
+  },
+  {
+   "match": "FIREHOUSE SUBS",
+   "category": "Dining Out",
+   "display": "Firehouse Subs"
+  },
+  {
+   "match": "RAISING CANE",
+   "category": "Dining Out",
+   "display": "Raising Cane's"
+  },
+  {
+   "match": "ZAXBY",
+   "category": "Dining Out",
+   "display": "Zaxby's"
+  },
+  {
+   "match": "BOJANGLES",
+   "category": "Dining Out",
+   "display": "Bojangles"
+  },
+  {
+   "match": "SONIC DRIVE",
+   "category": "Dining Out",
+   "display": "Sonic"
+  },
+  {
+   "match": "FIVE GUYS",
+   "category": "Dining Out",
+   "display": "Five Guys"
+  },
+  {
+   "match": "SHAKE SHACK",
+   "category": "Dining Out",
+   "display": "Shake Shack"
+  },
+  {
+   "match": "IN-N-OUT",
+   "category": "Dining Out",
+   "display": "In-N-Out"
+  },
+  {
+   "match": "WHATABURGER",
+   "category": "Dining Out",
+   "display": "Whataburger"
+  },
+  {
+   "match": "CULVER",
+   "category": "Dining Out",
+   "display": "Culver's"
+  },
+  {
+   "match": "DAIRY QUEEN",
+   "category": "Dining Out",
+   "display": "Dairy Queen"
+  },
+  {
+   "match": "CRACKER BARREL",
+   "category": "Dining Out",
+   "display": "Cracker Barrel"
+  },
+  {
+   "match": "OLIVE GARDEN",
+   "category": "Dining Out",
+   "display": "Olive Garden"
+  },
+  {
+   "match": "APPLEBEE",
+   "category": "Dining Out",
+   "display": "Applebee's"
+  },
+  {
+   "match": "CHILI'?S",
+   "category": "Dining Out",
+   "display": "Chili's"
+  },
+  {
+   "match": "OUTBACK",
+   "category": "Dining Out",
+   "display": "Outback"
+  },
+  {
+   "match": "TEXAS ROADHOUSE",
+   "category": "Dining Out",
+   "display": "Texas Roadhouse"
+  },
+  {
+   "match": "CAVA",
+   "category": "Dining Out",
+   "display": "Cava"
+  },
+  {
+   "match": "SWEETGREEN",
+   "category": "Dining Out",
+   "display": "Sweetgreen"
+  },
+  {
+   "match": "TST\\*|TOAST|SQ \\*.*(CAFE|COFFEE|GRILL|KITCHEN|TACO|PIZZA|BBQ|DINER|BAKERY)|RESTAURANT|CAFE\\b|COFFEE|GRILL\\b|KITCHEN|PIZZ|TAQUERIA|SUSHI|BISTRO|BREWING|TAVERN",
+   "category": "Dining Out",
+   "display": "Restaurant"
+  },
+  {
+   "match": "AMAZON\\.COM|AMAZON MKTPL|AMZN MKTP|AMZN|AMAZON",
+   "category": "Shopping",
+   "display": "Amazon"
+  },
+  {
+   "match": "HOMEGOODS",
+   "category": "Shopping",
+   "display": "HomeGoods"
+  },
+  {
+   "match": "T\\.?J\\.? ?MAXX|MARSHALLS",
+   "category": "Shopping",
+   "display": "T.J. Maxx"
+  },
+  {
+   "match": "HOME DEPOT",
+   "category": "Shopping",
+   "display": "Home Depot"
+  },
+  {
+   "match": "LOWE'?S",
+   "category": "Shopping",
+   "display": "Lowe's"
+  },
+  {
+   "match": "IKEA",
+   "category": "Shopping",
+   "display": "IKEA"
+  },
+  {
+   "match": "BEST BUY",
+   "category": "Shopping",
+   "display": "Best Buy"
+  },
+  {
+   "match": "APPLE STORE|APPLE\\.COM(?!/BILL)",
+   "category": "Shopping",
+   "display": "Apple Store"
+  },
+  {
+   "match": "ETSY",
+   "category": "Shopping",
+   "display": "Etsy"
+  },
+  {
+   "match": "EBAY",
+   "category": "Shopping",
+   "display": "eBay"
+  },
+  {
+   "match": "SHEIN",
+   "category": "Shopping",
+   "display": "Shein"
+  },
+  {
+   "match": "TEMU",
+   "category": "Shopping",
+   "display": "Temu"
+  },
+  {
+   "match": "OLD NAVY",
+   "category": "Shopping",
+   "display": "Old Navy"
+  },
+  {
+   "match": "\\bGAP\\b",
+   "category": "Shopping",
+   "display": "Gap"
+  },
+  {
+   "match": "NIKE",
+   "category": "Shopping",
+   "display": "Nike"
+  },
+  {
+   "match": "LULULEMON",
+   "category": "Shopping",
+   "display": "Lululemon"
+  },
+  {
+   "match": "ULTA",
+   "category": "Shopping",
+   "display": "Ulta"
+  },
+  {
+   "match": "SEPHORA",
+   "category": "Shopping",
+   "display": "Sephora"
+  },
+  {
+   "match": "KOHL'?S",
+   "category": "Shopping",
+   "display": "Kohl's"
+  },
+  {
+   "match": "MACY'?S",
+   "category": "Shopping",
+   "display": "Macy's"
+  },
+  {
+   "match": "NORDSTROM",
+   "category": "Shopping",
+   "display": "Nordstrom"
+  },
+  {
+   "match": "ROSS STORES",
+   "category": "Shopping",
+   "display": "Ross"
+  },
+  {
+   "match": "BURLINGTON",
+   "category": "Shopping",
+   "display": "Burlington"
+  },
+  {
+   "match": "DICKS SPORTING|DICK'?S SPORTING",
+   "category": "Shopping",
+   "display": "Dick's Sporting Goods"
+  },
+  {
+   "match": "HOBBY ?LOBBY",
+   "category": "Shopping",
+   "display": "Hobby Lobby"
+  },
+  {
+   "match": "MICHAELS",
+   "category": "Shopping",
+   "display": "Michaels"
+  },
+  {
+   "match": "BARNES|THRIFT ?BOOKS",
+   "category": "Shopping",
+   "display": "Books"
+  },
+  {
+   "match": "WAYFAIR",
+   "category": "Shopping",
+   "display": "Wayfair"
+  },
+  {
+   "match": "VENMO",
+   "category": "Other",
+   "display": "Venmo"
+  },
+  {
+   "match": "ZELLE",
+   "category": "Other",
+   "display": "Zelle"
+  },
+  {
+   "match": "PAYPAL",
+   "category": "Other",
+   "display": "PayPal"
+  },
+  {
+   "match": "CASH APP|SQUARE CASH",
+   "category": "Other",
+   "display": "Cash App"
+  },
+  {
+   "match": "ATM WITHDRAWAL|ATM W/D|CASH WITHDRAWAL",
+   "category": "Other",
+   "display": "Cash Withdrawal"
+  },
+  {
+   "match": "^CHECK ?#?\\d*|CHECK PAID",
+   "category": "Other",
+   "display": "Check"
+  },
+  {
+   "match": "AIRLINE|AMERICAN AIR|DELTA AIR|UNITED AIR|SOUTHWEST|JETBLUE|SPIRIT AIR|FRONTIER AIR|HOTEL|MARRIOTT|HILTON|HYATT|AIRBNB|VRBO|EXPEDIA|BOOKING\\\\.COM",
+   "category": "Other",
+   "display": "Travel"
+  },
+  {
+   "match": "CVS PHARMACY|PHARMACY|DOCTOR|MEDICAL|HOSPITAL|DENTAL|DENTIST|URGENT CARE|LABCORP|QUEST DIAG|VISION|OPTOMETR",
+   "category": "Other",
+   "display": "Health"
+  }
+ ]
+}

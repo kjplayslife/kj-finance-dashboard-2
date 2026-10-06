@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "kj-finance",
+  "description": "KJ Finance Dashboard 2.0 from KJ Rainey.",
+  "owner": {
+    "name": "KJ Rainey",
+    "email": "kjplayslife@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "kj-finance-dashboard-2",
+      "source": "./",
+      "description": "A personal finance dashboard that Claude sets up for you, fed automatically from your bank (Era) or from bank CSV files."
+    }
+  ]
+}

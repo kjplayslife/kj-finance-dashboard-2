@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__DASHBOARD_TITLE__</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root{color-scheme:light}
+/* The page is light-only. Pin native controls (selects, inputs, scrollbars) to light even when the
+   phone/computer is in dark mode, so they never render white text or dark scrollbars here. */
+html{color-scheme:light only!important}
+/* Keep room for the scrollbar on every tab, so short tabs and long tabs line up the same. */
+html{scrollbar-gutter:stable}
+input,select,textarea,button{color-scheme:light only}
+input,select,textarea{color:#2a2a2a;background-color:#fff}
+option{color:#2a2a2a;background:#fff}
+*{scrollbar-color:#d8d4c8 transparent}
+::-webkit-scrollbar{height:10px;width:10px;background:transparent}
+::-webkit-scrollbar-thumb{background:#d8d4c8;border-radius:6px;border:2px solid #fafaf7}
+*{box-sizing:border-box}
+body{margin:0;background:#fafaf7;color:#2a2a2a;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",system-ui,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 60px}
+h1{font-size:22px;margin:0 0 2px;font-weight:600}
+.sub{color:#8a857a;font-size:13px;margin:0 0 18px}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:8px 16px;flex-wrap:wrap;margin-bottom:18px}
+.head h1{margin:0}
+.synced{color:#8a857a;font-size:12px;white-space:nowrap;cursor:default}
+.hright{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:flex-end}
+.save-err{color:#b8423a;font-size:12px}
+.tabs{display:flex;gap:6px;border-bottom:1px solid #e6e4dd;margin-bottom:20px;flex-wrap:wrap}
+.tab{padding:8px 14px;cursor:pointer;font-size:14px;color:#6a655c;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-top:none;border-left:none;border-right:none}
+.tab.active{color:#2f6f4e;border-bottom-color:#2f6f4e;font-weight:600}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:#fff;border:1px solid #e6e4dd;border-radius:10px;padding:18px;margin-bottom:16px}
+.card h3{font-size:14px;color:#5a564e;margin:0 0 14px;font-weight:600}
+.cap{float:right;color:#aaa39a;font-size:12px;font-weight:500}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.pill{padding:6px 13px;border-radius:16px;border:1px solid #e6e4dd;background:#fff;cursor:pointer;font-size:13px;color:#5a5a5a}
+.pill.active{background:#2f6f4e;color:#fff;border-color:#2f6f4e}
+/* Spending-by-category pills look like the others; the picked one fills with its line's color (--c) instead of green. */
+.pill.cat-pill.active{background:var(--c);border-color:var(--c)}
+.kpis{display:grid;grid-template-columns:repeat(var(--n,5),minmax(0,1fr));gap:14px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid #e6e4dd;border-radius:10px;padding:14px 16px;min-width:0}
+.kpi .lbl{font-size:13px;color:#8a857a;font-weight:600}
+.kpi .val{font-size:clamp(20px,2.4vw,26px);font-weight:700;margin:4px 0 2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi .note{font-size:11px;color:#aaa39a}
+.orange{color:#b86a2b}.gray{color:#6a655c}
+/* Cards double as the chart picker: light border on hover, the chart's color when it's the one shown. */
+.kpi.pick{cursor:pointer;transition:border-color .12s,box-shadow .12s}
+.kpi.pick:hover{border-color:#c9c3b6}
+/* Net card gets a faint green/red tint (positive/negative) */
+.kpi.net-pos{background:rgba(47,111,78,.06);border-color:rgba(47,111,78,.2)}
+.kpi.net-neg{background:rgba(184,66,58,.06);border-color:rgba(184,66,58,.2)}
+.kpi.pick.active.net-pos{border-color:#2f6f4e;box-shadow:inset 0 0 0 1px #2f6f4e}
+.kpi.pick.active.net-neg{border-color:#b8423a;box-shadow:inset 0 0 0 1px #b8423a}
+.kpi.pick.active{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c)}
+.kpi.pick:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+.kpi .est{margin-left:5px;font-size:10px;letter-spacing:.3px;color:#aaa39a;text-transform:none;font-weight:600}
+.debtkpi{position:relative}
+.debtkpi .caret{display:inline-block;margin-left:4px;color:#aaa39a;transition:transform .15s}
+.debtkpi.open .caret{transform:rotate(180deg)}
+.debt-pop{display:none;position:absolute;z-index:20;top:calc(100% + 6px);right:0;width:max(100%,250px);background:#fff;border:1px solid #e6e4dd;border-radius:10px;box-shadow:0 8px 24px rgba(42,42,42,.12);padding:12px 14px;cursor:default}
+.debtkpi.open .debt-pop,.debtkpi:focus-visible .debt-pop{display:block}
+@media(hover:hover){.debtkpi:hover .debt-pop{display:block}}
+.debt-pop .pop-ttl{font-size:13px;color:#5a564e;font-weight:600;margin-bottom:6px}
+.debt-pop .pop-foot{font-size:11px;color:#aaa39a;margin-top:8px}
+.cardlist{list-style:none;margin:0;padding:0;font-size:12.5px;color:#4a4a4a}
+.cardlist li{padding:5px 0}
+.cardlist .row{display:flex;justify-content:space-between;gap:10px}
+.cardlist .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cardlist .mask{color:#aaa39a}
+.cardlist .owed{font-variant-numeric:tabular-nums;color:#2a2a2a;font-weight:600}
+.cardlist .bar{height:4px;border-radius:2px;background:#f0eee8;margin-top:4px;overflow:hidden}
+.cardlist .bar span{display:block;height:100%;background:#b86a2b;opacity:.7}
+.green{color:#2f6f4e}.red{color:#b8423a}.blue{color:#3c6c8a}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+/* Transfers: one tile per transfer; the whole tile is the checkbox. --c = accent, --bg = its tint. */
+.xgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.xtile{position:relative;display:grid;grid-template-columns:1fr auto;grid-template-areas:"ico check" "body body" "state state";row-gap:10px;padding:16px 16px 14px;border:1px solid var(--c);border-radius:10px;background:#fff;cursor:pointer;overflow:hidden;transition:box-shadow .15s,background .15s}
+.xtile:hover{box-shadow:inset 0 0 0 1px var(--c)}
+.xtile:focus-within{outline:2px solid var(--c);outline-offset:2px}
+.xtile input{position:absolute;opacity:0;pointer-events:none}
+.xt-ico{grid-area:ico;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--bg);color:var(--c)}
+.xt-ico svg{width:18px;height:18px}
+.xt-check{grid-area:check;align-self:start;width:24px;height:24px;border-radius:50%;border:2px solid #d8d4c8;display:grid;place-items:center;color:transparent;transition:background .15s,border-color .15s}
+.xt-check svg{width:13px;height:13px}
+.xt-body{grid-area:body;min-width:0}
+.xt-lbl{font-size:13px;color:#8a857a;font-weight:600}
+.xt-amt{font-size:clamp(20px,2.2vw,26px);font-weight:700;color:#2a2a2a;font-variant-numeric:tabular-nums;margin:2px 0 1px;white-space:nowrap}
+.xt-sub{font-size:12px;color:#8a857a}
+.xt-state{grid-area:state;font-size:12px;font-weight:600;color:#aaa39a}
+.xtile.done{background:var(--bg)}
+.xtile.done .xt-check{background:var(--c);border-color:var(--c);color:#fff}
+.xtile.done .xt-ico{background:#fff}
+.xt-state{visibility:hidden}
+.xtile.done .xt-state{visibility:visible;color:var(--c)}
+.xtile.static{cursor:default;grid-template-areas:"ico ico" "body body"}
+.xtile.static:hover{box-shadow:none}
+@media(max-width:640px){.xtile.static{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"ico body"}}
+#ov-transfers{clear:both}
+.xfoot{display:flex;justify-content:space-between;gap:6px 16px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:#8a857a}
+.xfoot b{color:#2a2a2a;font-variant-numeric:tabular-nums}
+@media(max-width:640px){.xgrid{grid-template-columns:1fr;gap:8px}.xtile{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"ico body check";column-gap:12px;align-items:center;padding:14px 14px 12px}.xt-check{align-self:center}.xt-state{display:none}}
+.bills{list-style:none;margin:0;padding:0}
+.bill{display:grid;grid-template-columns:120px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #f0eee8}
+.bill:last-child{border-bottom:none}
+.bill .when b{display:block;font-size:13.5px;font-weight:600}
+.bill .when span{font-size:11.5px;color:#8a857a}
+.bill .nm{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bill .ac{display:block;font-size:11.5px;color:#aaa39a}
+.bill .amt{font-weight:600;color:#8a857a;font-variant-numeric:tabular-nums}
+/* Accounts tab: one row per account (name, bank and last four on the left, balance on the right), total underneath. */
+.acct-list{list-style:none;margin:0;padding:0}
+.acct-list li{border-bottom:1px solid #f0eee8;padding:2px 0}
+.acct-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 0}
+a.acct-row{color:inherit;text-decoration:none;margin:0 -10px;padding:9px 10px;border-radius:8px;transition:background .12s}
+a.acct-row:hover{background:#f6f5f0}
+a.acct-row:focus-visible{outline:2px solid #2f6f4e;outline-offset:-2px}
+.acct-row .go{margin-left:5px;font-size:12px;font-weight:500;color:#aaa39a}
+.acct-row .nm{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acct-row .sub{display:block;font-size:12px;color:#aaa39a}
+.acct-row .sub .dt{white-space:nowrap}
+.acct-row .sub .stale{color:#b86a2b}
+.acct-row .bal{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.acct-row .bal small{display:block;font-size:11px;font-weight:500;color:#aaa39a}
+.acct-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:12px;font-size:13px;color:#8a857a;font-weight:600}
+.acct-total b{font-size:16px;font-variant-numeric:tabular-nums;color:#2a2a2a}
+.acct-total b.orange{color:#b86a2b}
+/* Net worth card: bank, minus cards, = net; faint green/red like the Overview's Net card. */
+.card.net-card.net-pos{background:rgba(47,111,78,.06);border-color:rgba(47,111,78,.2)}
+.card.net-card.net-neg{background:rgba(184,66,58,.06);border-color:rgba(184,66,58,.2)}
+.net-line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:6px 0;font-size:14px;color:#5a564e}
+.net-line b{font-variant-numeric:tabular-nums;font-size:15px}
+.net-line.total{margin-top:6px;padding-top:12px;border-top:1px solid rgba(42,42,42,.12);font-weight:600;color:#2a2a2a}
+.net-line.total b{font-size:20px}
+.card.bills-card{background:#fcf6f5;border-color:#efd9d6}
+.bills-card .bill{border-bottom-color:#f1e1de}
+.callout{border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:13.5px;border-left:3px solid}
+.c-bad{border-color:#b8423a;background:#fbe7e3;color:#5a1f1c}
+.c-good{border-color:#2f6f4e;background:#e1efe6;color:#173b29}
+.c-warn{border-color:#b86a2b;background:#fbe9d8;color:#5a3617}
+.c-neu{border-color:#3c6c8a;background:#e3eef6;color:#1c3a4f}
+.c-yel{border-color:#c89b1e;background:#f5edcf;color:#5a4514}
+/* Insights: the month's numbers with the change from the month before, then plain-language takeaways. */
+.ins-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 16px}
+.ins-stats .lbl{font-size:12px;color:#8a857a;font-weight:600}
+.ins-stats .val{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ins-stats .chg{font-size:11.5px;color:#aaa39a;white-space:nowrap}
+.ins-stats .chg.up-bad,.ins-stats .chg.down-bad{color:#b8423a}.ins-stats .chg.up-good,.ins-stats .chg.down-good{color:#2f6f4e}
+@media(max-width:640px){.ins-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.callout:last-child{margin-bottom:0}
+.callout b{font-weight:600}
+.ins-list{margin:4px 0 0;padding-left:18px}
+.ins-list li{margin:2px 0}
+/* Notes on a transaction: a small button by its name; the note shows under the name. */
+.note-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:6px;padding:0;border:0;border-radius:6px;background:none;color:#c9c3b6;cursor:pointer;vertical-align:-5px;flex:none}
+.note-btn svg{width:15px;height:15px}
+.note-btn:hover{color:#6a655c;background:#f0eee8}
+.note-btn.has{color:#3c6c8a}
+.note-btn:focus-visible{outline:2px solid #3c6c8a;outline-offset:1px}
+.desc-row{display:flex;align-items:center;min-width:0}
+.desc-row .desc-txt,.desc-row .rc-desc{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-note{display:block;white-space:normal;font-size:12px;line-height:1.4;color:#5a6f7d;font-weight:400;margin-top:2px;overflow-wrap:anywhere}
+.modal textarea{width:100%;min-height:96px;resize:vertical;border:1px solid #e6e4dd;border-radius:8px;padding:10px 12px;font:inherit;font-size:14px;line-height:1.45;color:#2a2a2a;background:#fff;margin:0 0 14px;box-sizing:border-box}
+.modal textarea:focus{outline:2px solid #3c6c8a;outline-offset:0;border-color:#3c6c8a}
+.modal .note-sub{margin:-4px 0 12px;font-size:12.5px;color:#8a857a}
+.modal .note-actions{display:flex;gap:8px;align-items:center}
+.modal .note-actions .btn{width:auto;flex:1}
+.modal .btn-plain{border:1px solid #e6e4dd;background:#fff;color:#5a564e;border-radius:8px;padding:9px 14px;font-size:14px;font-weight:600;cursor:pointer}
+.modal .btn-plain:hover{background:#f6f5f0}
+.modal .btn-del{border:0;background:none;color:#b8423a;font-size:13px;font-weight:600;cursor:pointer;padding:9px 6px}
+/* Small pop-up (the "+ New category" tip). */
+.modal-back{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(42,42,42,.35)}
+.modal-back[hidden]{display:none}
+.modal{background:#fff;border-radius:12px;padding:20px 22px;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(42,42,42,.25)}
+.modal h3{margin:0 0 8px;font-size:16px;font-weight:600;color:#2a2a2a}
+.modal p{margin:0 0 16px;font-size:14px;color:#5a564e;line-height:1.5}
+.modal i{color:#2a2a2a}
+.modal .btn{width:100%}
+.sectlbl{font-size:13.5px;color:#5a564e;font-weight:600;margin:16px 0 8px}
+.btn{background:#2f6f4e;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;cursor:pointer;font-weight:600}
+.txhead{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;margin-bottom:14px}
+.card .txhead h3{margin:0}
+.txhead .fgroup{display:flex;gap:8px;flex-wrap:wrap}
+.txhead input[type=text],.txhead select{border:1px solid #e6e4dd;border-radius:8px;padding:7px 10px;font-size:13px;background:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{position:sticky;top:0;background:#f6f5f0;text-align:left;padding:9px 10px;font-size:12.5px;color:#8a857a;font-weight:600;cursor:pointer;border-bottom:1px solid #e6e4dd;white-space:nowrap}
+tbody td{padding:8px 10px;border-bottom:1px solid #f2f0ea;vertical-align:middle}
+tbody tr:nth-child(even){background:#fcfbf8}
+.amt{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.category-select{border:1px solid #e6e4dd;border-radius:14px;padding:4px 8px;font-size:12px;cursor:pointer}
+/* Need rating: 1 = want, 2 = could skip, 3 = need. */
+.need{display:inline-flex;gap:4px}
+.nb{width:26px;height:26px;padding:0;border-radius:7px;border:1px solid #e6e4dd;background:#fff;color:#8a857a;font-size:12px;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums;transition:background .12s,border-color .12s,color .12s}
+.nb:hover{border-color:var(--c);color:var(--c)}
+.nb.on{background:var(--c);border-color:var(--c);color:#fff}
+.nb.sug{background:var(--bg);border:1px dashed var(--c);color:var(--c)}
+.nb:focus-visible{outline:2px solid var(--c);outline-offset:1px}
+.n1{--c:#b8423a;--bg:#fbecea}.n2{--c:#c89b1e;--bg:#faf3dc}.n3{--c:#2f6f4e;--bg:#e8f2ec}.n0{--c:#b0a89a;--bg:#f4f2ec}
+.na{color:#c9c3b6}
+/* Daily recap: this month's numbers, then everything new since the last review. */
+.tab{display:inline-flex;align-items:center}
+/* The picked tab is bold; each label reserves its bold width up front so the tabs never shift. */
+.tab .tl{display:inline-grid}
+.tab .tl::after{content:attr(data-t);font-weight:600;height:0;visibility:hidden;overflow:hidden}
+.tab .badge{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:18px;height:18px;margin-left:6px;padding:0 5px;border-radius:9px;background:#2f6f4e;color:#fff;font-size:11px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.rc-stats{display:grid;grid-template-columns:repeat(var(--n,5),minmax(0,1fr));gap:4px 16px}
+/* With an even number of cards (no savings or no card accounts), nothing spans the full row on narrow screens. */
+.kpis.even .kpi:last-child,.rc-stats.even .rc-stat:last-child{grid-column:auto}
+.rc-stat .lbl{font-size:12px;color:#8a857a;font-weight:600}
+.rc-stat .val{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rc-legend{font-size:12px;color:#8a857a;margin:-6px 0 10px}
+.rc-legend b{font-weight:600}
+.rc-list{list-style:none;margin:0;padding:0}
+.rc-item{display:grid;grid-template-columns:62px minmax(0,1fr) 168px 96px 92px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #f0eee8}
+.rc-item:last-child{border-bottom:none}
+.rc-date{font-size:13px;color:#5a564e;white-space:nowrap}
+.rc-what{min-width:0}
+.rc-desc{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-acct{display:block;font-size:11.5px;color:#aaa39a}
+.rc-item .category-select{width:100%;max-width:168px}
+.rc-item .nb{width:28px;height:28px}
+.rc-item .na{text-align:center}
+.rc-sub{font-size:13px;color:#8a857a;font-weight:600;margin:16px 0 2px}
+.rc-done{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid #e6e4dd;font-size:12.5px;color:#8a857a}
+.btn{border:1px solid #2f6f4e;background:#2f6f4e;color:#fff;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer}
+.btn:hover{background:#285f43}
+.btn:focus-visible{outline:2px solid #2f6f4e;outline-offset:2px}
+.rc-empty{padding:20px 4px;text-align:center;color:#8a857a}
+.rc-empty b{display:block;color:#2f6f4e;font-size:15px;margin-bottom:2px}
+@media(max-width:760px){.rc-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}.rc-stat:last-child{grid-column:1/-1}}
+@media(max-width:640px){
+  .rc-item{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"what amt" "cat need";gap:8px 12px;padding:12px 0}
+  .rc-date{display:none}.rc-what{grid-area:what}.rc-amt{grid-area:amt}.rc-item .category-select{grid-area:cat;max-width:200px}.rc-item>.need,.rc-item>.na{grid-area:need;justify-self:end}
+  .rc-item .nb{width:34px;height:34px;font-size:13px}
+  .rc-done .btn{width:100%}
+}
+/* Rating strip: four sections that double as the filter, with the month's split as a bar underneath. */
+.chead{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;margin-bottom:14px}
+.card .chead h3{margin:0}
+.ctrls{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center}
+/* Under the Spending by month chart: the note on the left, the "Hide Oct" box on the right. */
+.tchart-foot{display:flex;align-items:center;flex-wrap:wrap;gap:4px 14px;margin-top:10px}
+.tchart-foot .footnote{margin:0}
+.hide-partial{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#6a655c;cursor:pointer;user-select:none}
+/* Drawn by hand so it stays dark green; the browser's own box flashed a pale green while being clicked. */
+.hide-partial input{appearance:none;-webkit-appearance:none;margin:0;width:14px;height:14px;border:1.5px solid #c9c3b6;border-radius:3px;background:#fff center/10px 10px no-repeat;cursor:pointer;flex:none}
+.hide-partial input:checked{background-color:#2f6f4e;border-color:#2f6f4e;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 5.2l2 2 4-4.4' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.hide-partial input:focus-visible{outline:2px solid #2f6f4e;outline-offset:2px}
+.seg{display:inline-flex;border:1px solid #e6e4dd;border-radius:8px;overflow:hidden;background:#fff}
+.seg button{border:0;background:none;padding:6px 12px;font:inherit;font-size:13px;color:#6a655c;cursor:pointer}
+.seg button+button{border-left:1px solid #e6e4dd}
+.seg button:hover{background:#faf9f6}
+.seg button.on{background:#2f6f4e;color:#fff}
+.needbar{border:1px solid #e6e4dd;border-radius:10px;overflow:hidden;margin-bottom:14px}
+.nsegs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.nseg{position:relative;display:flex;flex-direction:column;gap:3px;padding:11px 14px 12px;border:0;border-right:1px solid #f0eee8;background:#fff;font:inherit;color:inherit;text-align:left;cursor:pointer;transition:background .12s}
+.nseg:last-child{border-right:0}
+.nseg:hover{background:#faf9f6}
+.nseg.on{background:var(--bg)}
+.nseg.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--c)}
+.nseg:focus-visible{outline:2px solid var(--c);outline-offset:-2px}
+.nseg-top{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#6a655c}
+.nseg.on .nseg-top{color:var(--c)}
+.nseg-top .dot{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
+.nseg-top .cnt{margin-left:auto;font-weight:500;font-size:12px;color:#aaa39a}
+.nseg-amt{font-size:17px;font-weight:700;color:#2a2a2a;color:color-mix(in srgb,var(--c) 60%,#2a2a2a);font-variant-numeric:tabular-nums}
+/* Phones: each transaction becomes a card (description + amount, date and account, category + rating). */
+@media(max-width:640px){
+#tx-table thead{display:none}
+#tx-table,#tx-table tbody{display:block}
+#tx-table tbody tr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"desc desc amt" "date acct acct" "cat cat need";column-gap:8px;row-gap:6px;align-items:center;margin-bottom:8px;padding:12px 14px;border:1px solid #e6e4dd;border-radius:10px;background:#fff}
+#tx-table tbody tr:nth-child(even){background:#fff}
+#tx-table tbody td{padding:0;border:0}
+#tx-table td:nth-child(1){grid-area:date;font-size:12px;color:#8a857a}
+#tx-table td:nth-child(2){grid-area:desc;max-width:none;font-size:14.5px;font-weight:600}
+#tx-table td:nth-child(3){grid-area:acct}
+#tx-table td:nth-child(3)::before{content:"\00b7  ";color:#c9c3b6}
+#tx-table td:nth-child(4){grid-area:cat}
+#tx-table td:nth-child(5){grid-area:amt;font-size:14.5px;font-weight:600}
+#tx-table td:nth-child(6){grid-area:need;justify-self:end}
+#tx-table .na{display:none}
+#tx-table .nb{width:32px;height:32px;font-size:13px}
+}
+@media(max-width:640px){.nsegs{grid-template-columns:repeat(2,minmax(0,1fr))}.nseg:nth-child(2n){border-right:0}.nseg:nth-child(-n+2){border-bottom:1px solid #f0eee8}}
+.desc{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct{color:#8a857a;font-size:12px;white-space:nowrap}
+.pend{display:inline-block;margin-left:6px;border:1px solid #d8d4c8;color:#8a857a;border-radius:10px;font-size:10.5px;padding:0 7px;letter-spacing:.3px;vertical-align:1px}
+.tiles3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.tile{border-radius:10px;padding:16px 18px}
+.tile .lbl{font-size:14px;font-weight:600}
+.tile .big{font-size:30px;font-weight:700;margin-top:6px}
+.t-green{background:#e1efe6;color:#173b29}.t-green .lbl{color:#2f6f4e}
+.t-peach{background:#fbe9d8;color:#5a3617}.t-peach .lbl{color:#b86a2b}
+.t-red{background:#fbe7e3;color:#5a1f1c}.t-red .lbl{color:#b8423a}
+.btable td,.btable th{font-size:12.5px}
+.btable input{width:64px;border:1px solid #e6e4dd;border-radius:6px;padding:4px 6px;font-size:12px;text-align:right}
+.btable th.partial,.btable td.partial{opacity:.55}
+.badge{border-radius:12px;font-size:11px;color:#fff;padding:2px 9px;white-space:nowrap}
+.footnote{font-size:12px;color:#aaa39a;margin:10px 0 0}
+.verse-footer{margin:32px auto 8px;max-width:640px;padding:16px 24px;border-top:1px solid #e6e4dd;text-align:center;color:#8a857a;font-style:italic;font-size:13px;line-height:1.5}
+.verse-footer .verse-text{margin:0 0 6px}
+.verse-footer .verse-ref{margin:0;font-style:normal;font-size:12px;color:#aaa39a}
+.toast{position:relative;margin-top:14px;background:#2f6f4e;color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;display:none}
+.empty{padding:24px;text-align:center;color:#aaa39a}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis .kpi:last-child{grid-column:1/-1}}
+@media(max-width:760px){.kpis{gap:10px}.kpi{padding:12px}.bill{grid-template-columns:92px minmax(0,1fr) auto;gap:10px}.bill .nm{white-space:normal}.row2,.tiles3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><h1><span id="dash-title">__DASHBOARD_TITLE__</span> <span id="title-year"></span></h1><span class="hright"><span class="save-err" id="save-err" hidden>Couldn't save your last change. Check your connection and try again.</span><span class="synced" id="synced"></span></span></div>
+  <div class="tabs">
+    <button class="tab" data-tab="recap" id="recap-tab"><span class="tl" data-t="Daily Recap">Daily Recap</span></button>
+    <button class="tab active" data-tab="overview"><span class="tl" data-t="Overview">Overview</span></button>
+    <button class="tab" data-tab="transactions"><span class="tl" data-t="Transactions">Transactions</span></button>
+    <button class="tab" data-tab="budget"><span class="tl" data-t="Budget">Budget</span></button>
+    <button class="tab" data-tab="insights"><span class="tl" data-t="Insights">Insights</span></button>
+    <button class="tab" data-tab="accounts"><span class="tl" data-t="Accounts">Accounts</span></button>
+  </div>
+
+  <div class="panel" id="recap">
+    <div class="card">
+      <h3 id="rc-month">This month</h3>
+      <div class="rc-stats" id="rc-stats"></div>
+    </div>
+    <div class="card">
+      <h3><span id="rc-title">New since your last review</span><span class="cap" id="rc-since"></span></h3>
+      <div id="rc-body"></div>
+    </div>
+    <div class="card bills-card" id="rc-bills-card" hidden>
+      <h3>Bills coming up <span class="cap">Next 7 days</span></h3>
+      <div id="rc-bills"></div>
+    </div>
+    <footer class="verse-footer"><p class="verse-text">"Be sure you know the condition of your flocks, give careful attention to your herds."</p><p class="verse-ref">&mdash; Proverbs 27:23</p></footer>
+  </div>
+
+  <div class="panel active" id="overview">
+    <div class="pills" id="ov-months"></div>
+    <div class="kpis" id="ov-kpis"></div>
+    <div class="card">
+      <h3><span id="mom-title">Month over month</span><span class="cap">Pick a card above to change this chart</span></h3>
+      <div style="position:relative;height:300px"><canvas id="mom-line"></canvas></div>
+      <div class="tchart-foot">
+        <p class="footnote" id="mom-note"></p>
+        <label class="hide-partial" id="mom-partial-wrap" hidden><input type="checkbox" id="mom-partial"> <span id="mom-partial-lbl">Show this month</span></label>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span id="xfer-ttl">Transfers to make</span><span class="cap" id="xfer-cap"></span></h3>
+      <div id="ov-transfers"></div>
+    </div>
+    <div class="card bills-card" id="bills-card">
+      <h3>Bills coming up <span class="cap">Next 7 days</span></h3>
+      <div id="ov-bills"></div>
+    </div>
+    <footer class="verse-footer"><p class="verse-text">"But seek first his kingdom and his righteousness, and all these things will be given to you as well."</p><p class="verse-ref">&mdash; Matthew 6:33</p></footer>
+  </div>
+
+  <div class="panel" id="transactions">
+    <div class="pills" id="tx-months"></div>
+    <div class="card">
+      <div class="chead">
+        <h3>Spending by month</h3>
+        <div class="ctrls">
+          <div class="seg" id="tchart-view" role="group" aria-label="Chart view"><button type="button" data-v="cat">By category</button><button type="button" data-v="need">By need</button></div>
+        </div>
+      </div>
+      <div class="pills" id="trend-pills"></div>
+      <div style="position:relative;height:300px"><canvas id="trend-line"></canvas></div>
+      <div class="tchart-foot">
+        <p class="footnote" id="tchart-note"></p>
+        <label class="hide-partial" id="hide-partial-wrap" hidden><input type="checkbox" id="hide-partial"> <span id="hide-partial-lbl">Hide this month</span></label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="txhead">
+        <h3>Transactions</h3>
+        <div class="fgroup">
+          <input type="text" id="tx-search" placeholder="Search..." title="Search names and notes">
+          <select id="tx-account-filter"><option value="">All accounts</option></select>
+        </div>
+      </div>
+      <div class="needbar" id="need-summary"></div>
+      <div style="overflow-x:auto">
+      <table id="tx-table">
+        <thead><tr>
+          <th data-sort="date">Date</th><th data-sort="desc">Description</th><th data-sort="acct">Account</th>
+          <th data-sort="cat">Category</th><th data-sort="amt" class="amt">Amount</th><th data-sort="need">Need</th>
+        </tr></thead>
+        <tbody id="tx-body"></tbody>
+      </table>
+      </div>
+      <div class="empty" id="tx-empty" style="display:none">No transactions match. Try clearing filters.</div>
+    </div>
+    <footer class="verse-footer"><p class="verse-text">"Each of you should give what you have decided in your heart to give, not reluctantly or under compulsion, for God loves a cheerful giver."</p><p class="verse-ref">&mdash; 2 Corinthians 9:7</p></footer>
+  </div>
+
+  <div class="panel" id="budget">
+    <div class="tiles3">
+      <div class="tile t-green"><div class="lbl">On Track / Under</div><div class="big" id="bt-ok">0</div></div>
+      <div class="tile t-peach"><div class="lbl">Watch It</div><div class="big" id="bt-watch">0</div></div>
+      <div class="tile t-red"><div class="lbl">Over Budget</div><div class="big" id="bt-over">0</div></div>
+    </div>
+    <div class="card"><h3>Budget vs actual <span class="cap">Budgets editable here &middot; saved per browser</span></h3>
+      <div style="overflow-x:auto"><table class="btable" id="budget-table"></table></div>
+      <p class="footnote" id="budget-note"></p>
+    </div>
+    <footer class="verse-footer"><p class="verse-text">"Honor the Lord with your wealth, with the firstfruits of all your crops; then your barns will be filled to overflowing."</p><p class="verse-ref">&mdash; Proverbs 3:9-10</p></footer>
+  </div>
+
+  <div class="panel" id="insights">
+    <div class="pills" id="ins-months"></div>
+    <div class="card">
+      <h3 id="ins-title">This month</h3>
+      <div class="ins-stats" id="ins-stats"></div>
+    </div>
+    <div class="card"><h3>How you did</h3><div id="ins-did"></div></div>
+    <div class="card"><h3>Where to improve</h3><div id="ins-improve"></div></div>
+    <div class="card"><h3 id="ins-plan-title">Plan for next month</h3><div id="ins-plan"></div></div>
+    <footer class="verse-footer"><p class="verse-text">"And my God will meet all your needs according to the riches of his glory in Christ Jesus."</p><p class="verse-ref">&mdash; Philippians 4:19</p></footer>
+  </div>
+
+  <div class="panel" id="accounts">
+    <div class="card">
+      <h3>Bank Accounts <span class="cap" id="acct-bank-cap"></span></h3>
+      <div id="acct-bank"></div>
+    </div>
+    <div class="card">
+      <h3>Credit Cards <span class="cap" id="acct-card-cap"></span></h3>
+      <div id="acct-cards"></div>
+    </div>
+    <div class="card net-card" id="acct-net-card">
+      <h3>Net Worth <span class="cap">Bank minus card debt</span></h3>
+      <div id="acct-net"></div>
+    </div>
+    <div class="card">
+      <h3>Net worth &middot; month over month</h3>
+      <div style="position:relative;height:220px"><canvas id="nw-line"></canvas></div>
+      <p class="footnote" id="nw-note"></p>
+    </div>
+    <footer class="verse-footer"><p class="verse-text">"The plans of the diligent lead to profit as surely as haste leads to poverty."</p><p class="verse-ref">&mdash; Proverbs 21:5</p></footer>
+  </div>
+</div>
+
+<div class="modal-back" id="note-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="note-title">
+    <h3 id="note-title">Note</h3>
+    <p class="note-sub" id="note-sub"></p>
+    <textarea id="note-text" maxlength="500" placeholder="Write a note about this transaction"></textarea>
+    <div class="note-actions"><button type="button" class="btn-del" id="note-del">Delete</button><button type="button" class="btn-plain" id="note-cancel">Cancel</button><button type="button" class="btn" id="note-save">Save</button></div>
+  </div>
+</div>
+
+<div class="modal-back" id="newcat-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="newcat-title">
+    <h3 id="newcat-title">Ask Claude for a new category</h3>
+    <p>Open the Claude chat this dashboard lives in and tell Claude what you'd like, for example: <i>"Add a Pets category and put Chewy in it."</i> Claude can add it here and move the right transactions into it.</p>
+    <button type="button" class="btn">Got it</button>
+  </div>
+</div>
+
+<script>
+const FIN = /*__FINANCE_DATA__*/null;
+// Example build (scripts/make_example.py): made-up data to show people. Nothing is saved anywhere,
+// so the Daily Recap shows the same example every time it opens, and "today" is the example's date.
+const DEMO = !!FIN.demo;
+// Cards and charts for balances only show when there's an account of that kind.
+const HAS_SAVINGS=FIN.accounts.some(a=>a.type==="Savings"),HAS_CARDS=FIN.accounts.some(a=>a.type==="CreditCard");
+function setCount(el,n){el.style.setProperty("--n",n);el.classList.toggle("even",n%2===0)}
+if(FIN.verses===false)document.querySelectorAll(".verse-footer").forEach(f=>f.remove());
+const MONTHS = FIN.months;
+const NON_SPEND = {}; FIN.nonSpend.forEach(c=>NON_SPEND[c]=1);
+const SPEND_CATS = FIN.categories.filter(c=>!NON_SPEND[c]);
+const CAT_COLORS = {"Groceries":"#2f6f4e","Dining Out":"#e07a5f","Shopping":"#d96ba0","Subscriptions":"#3c8aa8","Rent and Utilities":"#8a6fb0","Gas & Auto":"#c89b1e","Health & Fitness":"#4caf88","Personal Care":"#e0a3c4","Tithe":"#b86a2b","Fees":"#b8423a","Other":"#b0a89a","Card Payments":"#9aa0a6","Transfers":"#7a8aa0","Income":"#2f6f4e","Reimbursed":"#c9c2b6","Gift":"#5b8fb9","Family Wires":"#a89f91"};
+const LS={momPartial:"kj-pf2:mom-partial",showPartial:"kj-pf2:show-partial",hidePartialNeed:"kj-pf2:hide-partial-need",recap:"kj-pf2:recap",edits:"kj-pf2:edits",ovm:"kj-pf2:ov-month",bud:"kj-pf2:budgets",xfer:"kj-pf2:xfer",trend:"kj-pf2:trend",mom:"kj-pf2:mom"};
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function lsGet(k,d){if(DEMO)return d;try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function lsSet(k,v){if(DEMO)return;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+
+// Edits keyed by transaction id. Saved to the artifact's database when it's available (see Saving below),
+// otherwise to this browser's localStorage.
+let edits=lsGet(LS.edits,{});
+let budgets=Object.assign({},FIN.budgets,lsGet(LS.bud,{}));
+// A pending charge posts under a new id (sync.py lists the old one in prevIds); its edit moves with it.
+// Only in memory here; saveEdit rewrites the old month's document without it.
+function adoptPrevEdits(){
+  FIN.transactions.forEach(t=>{(t.prevIds||[]).forEach(p=>{if(edits[p]){if(!edits[t.id])edits[t.id]=edits[p];delete edits[p]}})});
+}
+adoptPrevEdits();
+function getCat(t){const e=edits[t.id];return e&&e.category?e.category:t.category}
+// Need rating 1-3 (0 = not rated); only spending rows get one.
+// A confirmed rating wins; otherwise the category's starting rating (config need_defaults) applies.
+function confirmedNeed(t){const e=edits[t.id];return e&&("need" in e)?e.need:(t.need||0)}
+function suggestedNeed(t){return (FIN.needDefaults||{})[getCat(t)]||0}
+function getNeed(t){return confirmedNeed(t)||suggestedNeed(t)}
+function isSuggested(t){return !confirmedNeed(t)&&suggestedNeed(t)>0}
+function isRateable(t){return t.amount<0&&!NON_SPEND[getCat(t)]}
+
+// Month helpers. The month of the last sync is still in progress, so averages leave it out.
+const YEARS=new Set(MONTHS.map(m=>m.slice(0,4)));
+function mLabel(m){const n=MON[+m.slice(5,7)-1];return YEARS.size>1?n+" '"+m.slice(2,4):n}
+const MON_FULL=["January","February","March","April","May","June","July","August","September","October","November","December"];
+function mFull(m){const n=MON_FULL[+m.slice(5,7)-1];return YEARS.size>1?n+" "+m.slice(0,4):n}
+const PARTIAL=FIN.lastPull&&FIN.lastPull.slice(0,7)===MONTHS[MONTHS.length-1]?MONTHS[MONTHS.length-1]:null;
+const FULL=MONTHS.filter(m=>m!==PARTIAL);
+
+const BY_MONTH={};MONTHS.forEach(m=>BY_MONTH[m]=[]);
+FIN.transactions.forEach(t=>{(BY_MONTH[t.date.slice(0,7)]||[]).push(t)});
+
+function money(n){if(n==null||isNaN(n))n=0;const neg=n<0;n=Math.abs(n);return (neg?"-$":"$")+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function money0(n){if(n==null||isNaN(n))n=0;const neg=n<0;n=Math.abs(n);return (neg?"-$":"$")+n.toLocaleString("en-US",{maximumFractionDigits:0})}
+
+function monthTx(m){return BY_MONTH[m]||[]}
+function realIncome(m){let s=0;monthTx(m).forEach(t=>{if(getCat(t)==="Income"&&t.amount>0)s+=t.amount});return s}
+function spend(m){let s=0;monthTx(m).forEach(t=>{const c=getCat(t);if(!NON_SPEND[c]&&t.amount<0)s+=-t.amount});return s}
+const CARDS=FIN.accounts.filter(a=>a.type==="CreditCard");
+function spendByCat(m){const o={};monthTx(m).forEach(t=>{const c=getCat(t);if(!NON_SPEND[c]&&t.amount<0)o[c]=(o[c]||0)+(-t.amount)});return o}
+
+function renderHeader(){
+  const yrs=[...YEARS];
+  document.getElementById("title-year").textContent=yrs.length>1?yrs[0]+"–"+yrs[yrs.length-1]:yrs[0];
+  document.getElementById("dash-title").textContent=FIN.title||"Personal Finances";
+  const synced=FIN.lastPull?new Date(FIN.lastPull).toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"never";
+  // Where the data comes from lives in the tooltip so the header stays clean.
+  const fromCsv=FIN.source==="csv";
+  let tip=(fromCsv?"Updated from bank CSV files ":"Synced from Era ")+synced+". Covers "+mLabel(MONTHS[0])+"–"+mLabel(MONTHS[MONTHS.length-1])+".";
+  const hist=FIN.eraStart&&FIN.source==="mixed"?MONTHS.filter(m=>m<FIN.eraStart.slice(0,7)):[];
+  if(hist.length)tip+=" "+mLabel(hist[0])+"–"+mLabel(hist[hist.length-1])+" come from imported CSV files.";
+  const el=document.getElementById("synced");el.textContent=(fromCsv?"Updated ":"Synced ")+synced;el.title=tip;
+  if(DEMO){el.textContent="Example data";el.title="Made-up numbers to show how the dashboard works. Changes here aren't saved."}
+}
+
+// The Overview picker holds a month ("2026-09") or a whole year ("2026").
+let curMonth=lsGet(LS.ovm,MONTHS[MONTHS.length-1]);
+if(MONTHS.indexOf(curMonth)<0&&!YEARS.has(curMonth))curMonth=MONTHS[MONTHS.length-1];
+function isYear(m){return m.length===4}
+function yearMonths(y){return MONTHS.filter(m=>m.slice(0,4)===y)}
+// Balances for a year are taken at its last month (today's balance for the current year).
+function balMonth(m){if(!isYear(m))return m;const ms=yearMonths(m);return ms[ms.length-1]}
+function sumOver(m,f){return isYear(m)?yearMonths(m).reduce((s,x)=>s+f(x),0):f(m)}
+
+function renderMonthPills(){
+  const c=document.getElementById("ov-months");c.innerHTML="";
+  function pill(key,txt){const b=document.createElement("button");b.className="pill"+(key===curMonth?" active":"");b.textContent=txt;
+    b.onclick=()=>{curMonth=key;lsSet(LS.ovm,key);renderMonthPills();renderKPI();renderMom();renderTransfers();renderBills()};c.appendChild(b)}
+  MONTHS.forEach((m,i)=>{
+    if(i===0||m.slice(0,4)!==MONTHS[i-1].slice(0,4))pill(m.slice(0,4),m.slice(0,4));
+    pill(m,mLabel(m)+(m===PARTIAL?" (so far)":""));
+  });
+}
+function renderKPI(){
+  const inc=sumOver(curMonth,realIncome),sp=sumOver(curMonth,spend),net=inc-sp;
+  const bm=balMonth(curMonth);
+  const sav=FIN.accounts.filter(a=>a.type==="Savings").reduce((s,a)=>s+balanceFor(a,bm),0);
+  const est=SAVINGS&&SAVINGS.estimatedBefore&&bm<SAVINGS.estimatedBefore.slice(0,7)&&!isLatestMonth(bm);
+  const box=document.getElementById("ov-kpis");setCount(box,3+(HAS_CARDS?1:0)+(HAS_SAVINGS?1:0));
+  box.innerHTML=
+   kpi("income","Real Income",money(inc),"gray")+
+   kpi("spending","Spent",money(sp),"gray")+
+   kpi("net","Net",(net>=0?"+":"")+money(net),net>=0?"green":"red","","",net>=0?"net-pos":"net-neg")+
+   (HAS_CARDS?debtKpi():"")+
+   (HAS_SAVINGS?kpi("savings","Total Savings",money(sav),"blue",est?'<span class="est" title="Estimated: before the first transaction on record for this account">est.</span>':"",
+     balanceNote(bm,FIN.accounts.filter(a=>a.type==="Savings"))):"");
+}
+// Balances follow the month picked above: a past month shows the balance at that month's end
+// (worked back from today in sync.py); the most recent month shows today's balance from Era.
+function isLatestMonth(m){return m===MONTHS[MONTHS.length-1]}
+function balanceFor(acct,m){
+  if(isLatestMonth(m))return acct.balance||0;
+  const i=BAL.months.indexOf(m);const b=BAL.accounts.find(x=>x.label===acct.label);
+  return b&&i>=0?b.values[i]:(acct.balance||0);
+}
+function balanceWhen(accts,m){
+  if(!isLatestMonth(m))return "at the end of "+mLabel(m);
+  const asOf=accts.map(a=>a.balanceAsOf).filter(Boolean).sort()[0];
+  return asOf?"as of "+new Date(asOf).toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"";
+}
+// Each card is also the switch for the chart below it (data-mom = which chart).
+function pickAttrs(key,extraClass,label){
+  const s=MOM.find(x=>x.key===key);const on=key===momKey;
+  return 'class="kpi pick'+(extraClass?" "+extraClass:"")+(on?" active":"")+'" data-mom="'+key+'" style="--c:'+s.color+'" tabindex="0" role="button" aria-pressed="'+on+'" aria-label="'+esc(label)+'"';
+}
+function kpi(key,l,v,cls,tag,note,extra){return '<div '+pickAttrs(key,extra||"",l+" "+v+". Show "+l+" by month in the chart.")+'><div class="lbl">'+l+(tag||"")+'</div><div class="val '+cls+'">'+v+'</div>'+(note?'<div class="note">'+note+'</div>':'')+'</div>'}
+function selectMom(key){
+  momKey=key;lsSet(LS.mom,key);
+  document.querySelectorAll("#ov-kpis .pick").forEach(c=>{const on=c.getAttribute("data-mom")===key;c.classList.toggle("active",on);c.setAttribute("aria-pressed",on?"true":"false")});
+  renderMom();
+}
+function wireCardPicker(){
+  const box=document.getElementById("ov-kpis");
+  box.addEventListener("click",function(e){const card=e.target.closest(".pick");if(card&&!e.target.closest(".debt-pop"))selectMom(card.getAttribute("data-mom"))});
+  box.addEventListener("keydown",function(e){const card=e.target.closest(".pick");if(card&&(e.key==="Enter"||e.key===" ")){e.preventDefault();selectMom(card.getAttribute("data-mom"))}});
+}
+// Under the debt and savings amounts: which moment the balance is from. Past months = the balance at
+// the end of that month; the latest month (and the year view) = the most recent balance from the bank.
+function balanceNote(m,accts){
+  if(!isLatestMonth(m))return "At the end of "+mFull(m);
+  const asOf=accts.map(a=>a.balanceAsOf).filter(Boolean).sort()[0];
+  return asOf?"As of "+new Date(asOf).toLocaleDateString("en-US",{month:"short",day:"numeric"}):"Latest balance";
+}
+function debtKpi(){
+  // What was owed at the end of the picked month (today's balance for the most recent month).
+  // The per-card breakdown pops out on hover (desktop) or tap (phone) so the card stays compact.
+  const bm=balMonth(curMonth);
+  const cards=CARDS.map(a=>({a:a,bal:balanceFor(a,bm)})).sort((x,y)=>y.bal-x.bal);
+  const total=cards.reduce((s,c)=>s+c.bal,0);
+  const list=cards.map(c=>{const a=c.a,bal=c.bal;const pct=total>0?Math.max(0,bal)/total*100:0;
+    return '<li><div class="row"><span class="name">'+esc(a.label)+(a.mask?'<span class="mask"> &middot;&middot;'+esc(a.mask)+'</span>':"")+'</span>'+
+      '<span class="owed">'+(bal<0?money(-bal)+" credit":money(bal))+'</span></div><div class="bar"><span style="width:'+pct.toFixed(1)+'%"></span></div></li>'}).join("");
+  const when=balanceWhen(CARDS,bm);
+  return '<div '+pickAttrs("debt","debtkpi","Credit card debt "+money(total)+" "+when+". Show debt by month in the chart and the amount owed on each card.")+' aria-expanded="false">'+
+    '<div class="lbl">Credit Card Debt<span class="caret" aria-hidden="true">&#9662;</span></div><div class="val orange">'+money(total)+'</div>'+
+    '<div class="note">'+balanceNote(bm,CARDS)+'</div>'+
+    '<div class="debt-pop"><div class="pop-ttl">Owed by card</div><ul class="cardlist">'+list+'</ul>'+(when?'<div class="pop-foot">Balances '+when+'</div>':"")+'</div></div>';
+}
+function wireDebtPopover(){
+  // Hover handles mice; taps and the keyboard toggle it. A tap anywhere else closes it.
+  function setOpen(card,open){card.classList.toggle("open",open);card.setAttribute("aria-expanded",open?"true":"false")}
+  // A mouse on a device that can hover already sees the details; every other click/tap toggles them.
+  function shownByHover(e){
+    const mouse=e.pointerType?e.pointerType==="mouse":true;
+    return mouse&&!!(window.matchMedia&&window.matchMedia("(hover: hover)").matches);
+  }
+  document.addEventListener("click",function(e){
+    const card=e.target.closest(".debtkpi");
+    document.querySelectorAll(".debtkpi.open").forEach(c=>{if(c!==card)setOpen(c,false)});
+    if(card&&!shownByHover(e)&&!e.target.closest(".debt-pop"))setOpen(card,!card.classList.contains("open"));
+  });
+  document.getElementById("ov-kpis").addEventListener("keydown",function(e){
+    const card=e.target.closest(".debtkpi");if(!card)return;
+    if(e.key==="Enter"||e.key===" "){e.preventDefault();setOpen(card,!card.classList.contains("open"))}
+    else if(e.key==="Escape"){setOpen(card,false);card.blur()}
+  });
+}
+
+// ---------- Month over month chart ----------
+// Balances (savings, card debt) are month-end values worked back from today's balance in sync.py;
+// the current month's point is today's balance. Income/spending/net use full months only.
+const BAL=FIN.balances||{months:[],accounts:[]};
+const SAVINGS=BAL.accounts.find(a=>a.type==="Savings");
+const MOM=[
+  {key:"income",label:"Income",color:"#2f6f4e"},
+  {key:"spending",label:"Spending",color:"#b8423a"},
+  {key:"net",label:"Net",color:"#6a655c"},
+  {key:"debt",label:"Credit card debt",color:"#b86a2b",balance:true},
+  {key:"savings",label:"Savings",color:"#3c6c8a",balance:true}
+].filter(s=>(s.key!=="savings"||HAS_SAVINGS)&&(s.key!=="debt"||HAS_CARDS));
+const MOM_DEFAULT=HAS_SAVINGS?"savings":"net";
+let momKey=lsGet(LS.mom,MOM_DEFAULT);if(!MOM.some(s=>s.key===momKey))momKey=MOM_DEFAULT;
+// The unfinished month shows on this chart (gray and dashed) unless "Show <month>" is unticked.
+let momShowPartial=lsGet(LS.momPartial,true)!==false;
+function momData(key){
+  const keep=m=>momShowPartial||m!==PARTIAL;
+  if(key==="savings"||key==="debt"){
+    const vals=key==="savings"?(SAVINGS?SAVINGS.values:BAL.months.map(()=>0)):BAL.months.map((m,i)=>BAL.accounts.filter(a=>a.type==="CreditCard").reduce((s,a)=>s+a.values[i],0));
+    const idx=BAL.months.map((m,i)=>i).filter(i=>keep(BAL.months[i]));
+    return {months:idx.map(i=>BAL.months[i]),values:idx.map(i=>vals[i])};
+  }
+  const f=key==="income"?realIncome:key==="spending"?spend:(m=>realIncome(m)-spend(m));
+  const ms=MONTHS.filter(keep);
+  return {months:ms,values:ms.map(f)};
+}
+let momChart=null;
+function renderMom(){
+  if(!chartVisible("mom-line",renderMom))return;
+  const s=MOM.find(x=>x.key===momKey);const d=momData(momKey);
+  document.getElementById("mom-title").textContent=s.label+" · month over month";
+  const labels=d.months.map(m=>mLabel(m)+(m===PARTIAL?"*":""));
+  const isNet=momKey==="net";
+  const radius=d.months.map(m=>m===curMonth?7:4);
+  // "monotone" keeps the curve smooth without bulging past the real values.
+  const ds={label:s.label,data:d.values,borderColor:s.color,backgroundColor:s.color+"33",fill:true,cubicInterpolationMode:"monotone",pointRadius:radius,pointHoverRadius:8};
+  if(isNet){
+    ds.fill={target:"origin",above:"rgba(47,111,78,.18)",below:"rgba(184,66,58,.18)"};
+    ds.pointBackgroundColor=d.values.map(v=>v>=0?"#2f6f4e":"#b8423a");ds.pointBorderColor=ds.pointBackgroundColor;
+  }
+  // The stretch into the unfinished month is dashed with a light gray fill, like Spending by month.
+  const pi=d.months.indexOf(PARTIAL);
+  if(pi>0){
+    const GRAY="#aaa39a",isP=c=>c.p1DataIndex===pi;
+    ds.segment={borderDash:c=>isP(c)?[6,5]:undefined,borderColor:c=>isP(c)?GRAY:undefined,backgroundColor:c=>isP(c)?"rgba(138,133,122,.14)":undefined};
+    const pb=ds.pointBackgroundColor||s.color+"33",pc=ds.pointBorderColor||s.color;
+    ds.pointBackgroundColor=d.months.map((m,i)=>i===pi?"rgba(170,163,154,.35)":Array.isArray(pb)?pb[i]:pb);
+    ds.pointBorderColor=d.months.map((m,i)=>i===pi?GRAY:Array.isArray(pc)?pc[i]:pc);
+  }
+  const box=document.getElementById("mom-partial");
+  document.getElementById("mom-partial-wrap").hidden=!PARTIAL;
+  if(PARTIAL){
+    document.getElementById("mom-partial-lbl").textContent="Show "+mLabel(PARTIAL);box.checked=momShowPartial;
+    box.onchange=()=>{momShowPartial=box.checked;lsSet(LS.momPartial,box.checked);renderMom()};
+  }
+  const ctx=document.getElementById("mom-line");if(momChart)momChart.destroy();
+  momChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[ds]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(isNet&&c.parsed.y>0?"+":"")+money(c.parsed.y)}}}}});
+  let note="";
+  if(momKey==="savings"){
+    note="Balance at the end of each month"+(pi>0?"; * "+mLabel(PARTIAL)+" = today":"")+".";
+    if(SAVINGS&&SAVINGS.estimatedBefore){const est=d.months.filter(m=>m<SAVINGS.estimatedBefore.slice(0,7));if(est.length)note+=" "+mLabel(est[0])+"&ndash;"+mLabel(est[est.length-1])+" are estimates (before the first transaction on record for savings).";}
+  }else if(momKey==="debt"){
+    note="Total owed across all cards at the end of each month"+(pi>0?"; * "+mLabel(PARTIAL)+" = today":"")+".";
+  }else{
+    note=pi>0?"* "+mLabel(PARTIAL)+" is still in progress.":"Full months only"+(PARTIAL?"; "+mLabel(PARTIAL)+" so far is in the cards above":"")+".";
+  }
+  document.getElementById("mom-note").innerHTML=note;
+}
+// Goals set during setup; any of them can be off (0%). Tax comes off the top, giving is figured after
+// tax, savings after tax and giving.
+const GOALS={taxPct:+(FIN.goals||{}).taxPct||0,tithePct:+(FIN.goals||{}).tithePct||0,savingsPct:+(FIN.goals||{}).savingsPct||0};
+const HAS_GOALS=GOALS.taxPct>0||GOALS.tithePct>0||GOALS.savingsPct>0;
+function goalAmounts(inc){
+  const g=GOALS;const tax=inc*g.taxPct/100;const tithe=(inc-tax)*g.tithePct/100;const sav=(inc-tax-tithe)*g.savingsPct/100;
+  return {tax:tax,tithe:tithe,sav:sav};
+}
+function renderTransfers(){
+  document.getElementById("ov-transfers").closest(".card").hidden=!HAS_GOALS;if(!HAS_GOALS)return;
+  // Tax, tithe and savings can only be figured once a month's income is in, so each month's page
+  // lists what to send from the month before (October shows September's). Check-offs are saved
+  // under the income month.
+  const c=document.getElementById("ov-transfers");const cap=document.getElementById("xfer-cap");
+  if(isYear(curMonth))return renderYearTransfers(c,cap);
+  const i=MONTHS.indexOf(curMonth);const src=i>0?MONTHS[i-1]:null;
+  document.getElementById("xfer-ttl").textContent=src?"Transfers to make from "+mFull(src)+"'s income":"Transfers to make";
+  if(!src){c.innerHTML='<div class="empty">No earlier month in the data to figure transfers from.</div>';cap.textContent="";return}
+  const inc=realIncome(src);const a=goalAmounts(inc);const items=xferItems(a);
+  const st=xferState[src]||{};
+  const sent=items.filter(it=>st[it.k]).length;
+  cap.textContent=sent+" of "+items.length+" sent";
+  c.innerHTML='<div class="xgrid">'+items.map(it=>{const done=!!st[it.k];
+    return '<label class="xtile'+(done?" done":"")+'" style="--c:'+it.c+';--bg:'+it.bg+'">'+
+      '<input type="checkbox" data-k="'+it.k+'"'+(done?" checked":"")+' aria-label="'+it.lbl+' '+money(it.amt)+' sent">'+
+      '<span class="xt-ico" aria-hidden="true">'+it.ico+'</span><span class="xt-check" aria-hidden="true">'+ICONS.check+'</span>'+
+      '<span class="xt-body"><span class="xt-lbl">'+it.lbl+'</span><span class="xt-amt" style="display:block">'+money(it.amt)+'</span><span class="xt-sub">'+it.sub+'</span></span>'+
+      '<span class="xt-state">Sent</span></label>'}).join("")+'</div>'+
+    '<div class="xfoot"><span>From '+mFull(src)+'\'s real income of <b>'+money(inc)+'</b></span><span>Total to move <b>'+money(items.reduce((s,it)=>s+it.amt,0))+'</b></span></div>';
+  c.querySelectorAll("input[data-k]").forEach(inp=>{inp.onchange=function(){
+    xferState[src]=xferState[src]||{};xferState[src][this.getAttribute("data-k")]=this.checked;saveXfer();renderTransfers()}});
+}
+function xferItems(a){
+  const g=GOALS;const after=[g.taxPct>0?"tax":"",g.tithePct>0?"giving":""].filter(Boolean).join(" + ");
+  return [
+    {k:"tax",lbl:"Tax Set-Aside",amt:a.tax,sub:g.taxPct+"% of income",c:"#b86a2b",bg:"#fbefe3",ico:ICONS.tax,on:g.taxPct>0},
+    {k:"tithe",lbl:"Tithe / Giving",amt:a.tithe,sub:g.tithePct+"% "+(g.taxPct>0?"after tax":"of income"),c:"#3c6c8a",bg:"#e7f0f6",ico:ICONS.tithe,on:g.tithePct>0},
+    {k:"sav",lbl:"Move to Savings",amt:a.sav,sub:g.savingsPct+"% "+(after?"after "+after:"of income"),c:"#2f6f4e",bg:"#e6f1ea",ico:ICONS.save,on:g.savingsPct>0}].filter(it=>it.on);
+}
+function renderYearTransfers(c,cap){
+  // Totals only (no check-offs): what the year's finished months of income called for.
+  // An unfinished month is left out; its transfers come due next month.
+  const ms=yearMonths(curMonth).filter(m=>m!==PARTIAL);
+  document.getElementById("xfer-ttl").textContent="Transfers to make from "+curMonth+" income";
+  if(!ms.length){c.innerHTML='<div class="empty">No finished months in '+curMonth+' yet.</div>';cap.textContent="";return}
+  const range=ms.length>1?mLabel(ms[0])+"–"+mLabel(ms[ms.length-1]):mLabel(ms[0]);
+  cap.textContent=range;
+  const inc=ms.reduce((s,m)=>s+realIncome(m),0);const a=goalAmounts(inc);
+  c.innerHTML='<div class="xgrid">'+xferItems(a).map(it=>
+    '<div class="xtile static" style="--c:'+it.c+';--bg:'+it.bg+'">'+
+      '<span class="xt-ico" aria-hidden="true">'+it.ico+'</span>'+
+      '<span class="xt-body"><span class="xt-lbl">'+it.lbl+'</span><span class="xt-amt" style="display:block">'+money(it.amt)+'</span><span class="xt-sub">'+it.sub+'</span></span></div>').join("")+'</div>'+
+    '<div class="xfoot"><span>From '+range+' real income of <b>'+money(inc)+'</b></span><span>Total to move <b>'+money(xferItems(a).reduce((s,it)=>s+it.amt,0))+'</b></span></div>';
+}
+// Kept in memory too, so check-offs still work where the browser blocks storage.
+let xferState=lsGet(LS.xfer,{});
+const ICONS={
+  tax:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 12h5M10 16h5"/></svg>',
+  tithe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
+  save:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10"/><path d="M8 10l4 4 4-4"/><path d="M5 16v4h14v-4"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+};
+function renderBills(){
+  // Monthly bills sync.py found in the history (same payee, similar amount, about monthly),
+  // with each one's next expected date. Shows the next 7 days from today, plus any from the
+  // past week that haven't shown up in the data yet (labeled "soon").
+  const due=billsDue();
+  document.getElementById("bills-card").hidden=isYear(curMonth);
+  document.getElementById("ov-bills").innerHTML=billsHtml(due);
+}
+function billsDue(){
+  const DAY=86400000;const today=DEMO?new Date(FIN.lastPull.slice(0,10)+"T00:00:00"):new Date();today.setHours(0,0,0,0);
+  return (FIN.bills||[]).map(b=>Object.assign({},b,{when:new Date(b.nextDate+"T00:00:00")}))
+    .map(b=>Object.assign(b,{days:Math.round((b.when-today)/DAY)}))
+    .filter(b=>b.days>=-7&&b.days<=7).sort((a,b)=>a.when-b.when||b.amount-a.amount);
+}
+function billsHtml(due){
+  if(!due.length)return '<div class="empty">No bills due in the next 7 days.</div>';
+  const rel=d=>d<0?"soon":d===0?"today":d===1?"tomorrow":"in "+d+" days";
+  return '<ul class="bills">'+due.map(b=>'<li class="bill"><div class="when"><b>'+b.when.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})+'</b><span>'+rel(b.days)+'</span></div>'+
+    '<div class="what"><span class="nm">'+esc(b.name)+'</span><span class="ac">'+esc(b.accountLabel)+'</span></div><div class="amt">'+money(b.amount)+'</div></li>').join("")+'</ul>';
+}
+
+// ---------- Transactions ----------
+let txMonth=MONTHS[MONTHS.length-1];  // always opens on the latest month
+let txSort={key:"date",dir:-1};
+let needFilter=null;  // null = all; 0 = not rated; 1-3 = that rating (set by clicking the rating strip)
+function renderTxMonthPills(){
+  const c=document.getElementById("tx-months");c.innerHTML="";
+  ["All"].concat(MONTHS).forEach(m=>{const b=document.createElement("button");b.className="pill"+(m===txMonth?" active":"");b.textContent=m==="All"?"All months":mLabel(m)+(m===PARTIAL?" (so far)":"");b.onclick=()=>{txMonth=m;renderTxMonthPills();renderTxTable();renderTrend()};c.appendChild(b)});
+}
+function fillAccountFilter(){
+  const sel=document.getElementById("tx-account-filter");
+  const accts=[...new Set(FIN.transactions.map(t=>t.accountLabel))].sort();
+  accts.forEach(a=>{const o=document.createElement("option");o.value=a;o.textContent=a;sel.appendChild(o)});
+}
+// Every category dropdown ends with "+ New category", which explains that Claude adds categories.
+function catOptions(sel){return FIN.categories.map(c=>'<option value="'+c+'"'+(c===sel?" selected":"")+'>'+c+'</option>').join("")+'<option value="__new">+ New category</option>'}
+function showNewCategoryTip(){
+  const m=document.getElementById("newcat-modal");m.hidden=false;m.querySelector("button").focus();
+}
+function wireNewCategoryTip(){
+  const m=document.getElementById("newcat-modal");const close=()=>{m.hidden=true};
+  m.querySelector("button").onclick=close;
+  m.addEventListener("click",e=>{if(e.target===m)close()});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!m.hidden)close()});
+}
+function renderTxTable(){
+  const search=(document.getElementById("tx-search").value||"").toLowerCase();
+  const af=document.getElementById("tx-account-filter").value;
+  let rows=txMonth==="All"?FIN.transactions.slice():monthTx(txMonth).slice();
+  if(search)rows=rows.filter(t=>(t.displayDescription+" "+t.rawDescription+" "+getNote(t)).toLowerCase().indexOf(search)>=0);
+  if(af)rows=rows.filter(t=>t.accountLabel===af);
+  if(needFilter!==null)rows=rows.filter(t=>isRateable(t)&&getNeed(t)===needFilter);
+  const k=txSort.key,dir=txSort.dir;
+  rows.sort((a,b)=>{let av,bv;
+    if(k==="date"){av=a.date;bv=b.date}
+    else if(k==="desc"){av=a.displayDescription.toLowerCase();bv=b.displayDescription.toLowerCase()}
+    else if(k==="acct"){av=a.accountLabel;bv=b.accountLabel}
+    else if(k==="cat"){av=getCat(a);bv=getCat(b)}
+    else if(k==="amt"){av=a.amount;bv=b.amount}
+    else{av=isRateable(a)?getNeed(a):-1;bv=isRateable(b)?getNeed(b):-1}
+    return av<bv?-dir:av>bv?dir:0});
+  const tb=document.getElementById("tx-body");tb.innerHTML="";
+  document.getElementById("tx-empty").style.display=rows.length?"none":"block";
+  const frag=document.createDocumentFragment();
+  rows.forEach(t=>{const tr=document.createElement("tr");const cat=getCat(t);
+    const d=new Date(t.date+"T00:00:00");const ds=d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+    const catBg=(CAT_COLORS[cat]||"#b0a89a")+"22";
+    tr.innerHTML='<td style="white-space:nowrap">'+ds+'</td>'+
+      '<td class="desc"><span class="desc-row"><span class="desc-txt" title="'+esc(t.rawDescription)+'">'+esc(t.displayDescription)+(t.pending?'<span class="pend">pending</span>':'')+'</span>'+noteBtn(t)+'</span>'+noteLine(t)+'</td>'+
+      '<td class="acct">'+esc(t.accountLabel)+'</td>'+
+      '<td><select class="category-select" data-id="'+esc(t.id)+'" style="background:'+catBg+'">'+catOptions(cat)+'</select></td>'+
+      '<td class="amt" style="color:'+(t.amount<0?"#b8423a":"#2f6f4e")+'">'+money(t.amount)+'</td>'+
+      '<td>'+needCell(t)+'</td>';
+    frag.appendChild(tr)});
+  tb.appendChild(frag);
+  tb.querySelectorAll(".need").forEach(paintNeed);
+  renderNeedSummary();
+}
+// Solid = confirmed rating; light dashed = the starting rating from its category, until confirmed.
+function paintNeed(group){
+  const t=TX_BY_ID[group.querySelector(".nb").getAttribute("data-id")];const v=getNeed(t),sug=isSuggested(t);
+  group.querySelectorAll(".nb").forEach(b=>{const n=+b.getAttribute("data-need");
+    b.classList.toggle("on",v===n&&!sug);b.classList.toggle("sug",v===n&&sug);b.setAttribute("aria-pressed",v===n&&!sug);
+    b.title=NEED[n].tip+(v===n&&sug?" (starting rating from its category; click to confirm)":"")});
+}
+const NEED=[null,{lbl:"Want",tip:"1 \u00b7 Want: didn't need it, just wanted it"},{lbl:"Could skip",tip:"2 \u00b7 Could skip: kind of needed it, could have gone without"},{lbl:"Need",tip:"3 \u00b7 Need: had to buy it"}];
+// Notes: saved like ratings, in edits (edits[id].note), so they follow the person across devices.
+function getNote(t){const e=edits[t.id];return e&&e.note?e.note:""}
+const NOTE_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
+function noteBtn(t){const has=!!getNote(t);
+  return '<button type="button" class="note-btn'+(has?" has":"")+'" data-note="'+esc(t.id)+'" aria-label="'+(has?"Edit note":"Add a note")+' for '+esc(t.displayDescription)+'" title="'+(has?"Edit note":"Add a note")+'">'+NOTE_ICON+'</button>'}
+function noteLine(t){const n=getNote(t);return n?'<span class="tx-note">'+esc(n)+'</span>':""}
+let noteFor=null;
+function openNote(id){
+  const t=TX_BY_ID[id];if(!t)return;noteFor=id;
+  const d=new Date(t.date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  document.getElementById("note-title").textContent=t.displayDescription;
+  document.getElementById("note-sub").textContent=d+" \u00b7 "+t.accountLabel+" \u00b7 "+money(t.amount);
+  const ta=document.getElementById("note-text");ta.value=getNote(t);
+  document.getElementById("note-del").hidden=!getNote(t);
+  const m=document.getElementById("note-modal");m.hidden=false;ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
+}
+function closeNote(){document.getElementById("note-modal").hidden=true;noteFor=null}
+function setNote(id,text){
+  const ed=Object.assign({},edits[id]||{});text=(text||"").trim();
+  if(text)ed.note=text;else delete ed.note;
+  if(Object.keys(ed).length)edits[id]=ed;else delete edits[id];
+  saveEdit(id);renderTxTable();renderRecap();
+}
+function wireNotes(){
+  const m=document.getElementById("note-modal");
+  document.getElementById("note-save").onclick=()=>{if(noteFor)setNote(noteFor,document.getElementById("note-text").value);closeNote()};
+  document.getElementById("note-del").onclick=()=>{if(noteFor)setNote(noteFor,"");closeNote()};
+  document.getElementById("note-cancel").onclick=closeNote;
+  m.addEventListener("click",e=>{if(e.target===m)closeNote()});
+  document.getElementById("note-text").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){e.preventDefault();document.getElementById("note-save").click()}});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!m.hidden)closeNote()});
+  // One listener for every note button, wherever the row is drawn.
+  document.addEventListener("click",e=>{const b=e.target.closest(".note-btn");if(b){e.preventDefault();openNote(b.getAttribute("data-note"))}});
+}
+function needCell(t){
+  if(!isRateable(t))return '<span class="na">&mdash;</span>';
+  return '<div class="need" role="group" aria-label="Need rating">'+[1,2,3].map(n=>'<button type="button" class="nb n'+n+'" data-id="'+esc(t.id)+'" data-need="'+n+'">'+n+'</button>').join("")+'</div>';
+}
+function renderNeedSummary(){
+  // Spending in the selected month split by rating. Each section filters the table; click again to show all.
+  const rows=(txMonth==="All"?FIN.transactions:monthTx(txMonth)).filter(isRateable);
+  const tot=[0,0,0,0],cnt=[0,0,0,0];rows.forEach(t=>{const v=getNeed(t);tot[v]+=-t.amount;cnt[v]++});
+  const order=[[1,"1 Want"],[2,"2 Could skip"],[3,"3 Need"],[0,"Not rated"]];
+  document.getElementById("need-summary").innerHTML='<div class="nsegs">'+order.map(([n,lbl])=>{const on=needFilter===n;
+    return '<button type="button" class="nseg n'+n+(on?" on":"")+'" data-need="'+n+'" aria-pressed="'+on+'" title="'+(on?"Show all ratings":"Show only "+lbl.replace(/^\d /,""))+'">'+
+      '<span class="nseg-top"><span class="dot"></span>'+lbl+'<span class="cnt">'+cnt[n]+'</span></span><span class="nseg-amt">'+money(tot[n])+'</span></button>'}).join("")+'</div>';
+}
+function wireSortHeaders(){
+  document.querySelectorAll("#tx-table thead th").forEach(th=>{th.onclick=()=>{const k=th.getAttribute("data-sort");if(txSort.key===k)txSort.dir*=-1;else{txSort.key=k;txSort.dir=k==="amt"?-1:1}renderTxTable()}});
+}
+function wireNeedFilter(){
+  document.getElementById("need-summary").addEventListener("click",function(e){
+    const b=e.target.closest(".nseg");if(!b)return;const n=+b.getAttribute("data-need");
+    needFilter=needFilter===n?null:n;renderTxTable();
+  });
+}
+function wireFilters(){["tx-search"].forEach(id=>document.getElementById(id).oninput=renderTxTable);["tx-account-filter"].forEach(id=>document.getElementById(id).onchange=renderTxTable)}
+const TX_BY_ID={};FIN.transactions.forEach(t=>TX_BY_ID[t.id]=t);
+function wireTableEdits(){wireEdits("tx-body")}
+function wireEdits(boxId){
+  document.getElementById(boxId).addEventListener("change",function(e){
+    const el=e.target;const id=el.getAttribute("data-id");if(!id)return;const t=TX_BY_ID[id];if(!t)return;
+    const ed=edits[id]||{};
+    if(el.classList.contains("category-select")&&el.value==="__new"){el.value=getCat(t);showNewCategoryTip();return}
+    if(el.classList.contains("category-select")){const v=el.value;if(v===t.category)delete ed.category;else ed.category=v;el.style.background=(CAT_COLORS[v]||"#b0a89a")+"22"}
+    if(Object.keys(ed).length)edits[id]=ed;else delete edits[id];
+    saveEdit(id);dataChanged();renderTxTable();if(boxId!=="tx-body")renderRecap();
+  });
+  document.getElementById(boxId).addEventListener("click",function(e){
+    const b=e.target.closest(".nb");if(!b)return;const id=b.getAttribute("data-id");const t=TX_BY_ID[id];if(!t)return;
+    // Click a number to confirm/set it; click the confirmed one again to go back to the starting rating.
+    const n=+b.getAttribute("data-need");const ed=edits[id]||{};const next=confirmedNeed(t)===n?0:n;
+    if(next===(t.need||0))delete ed.need;else ed.need=next;
+    if(Object.keys(ed).length)edits[id]=ed;else delete edits[id];saveEdit(id);
+    // A rating only changes the By need chart, so the By category chart is left alone (no replayed animation).
+    paintNeed(b.parentNode);renderNeedSummary();renderInsights();if(tView==="need")renderTrend();if(boxId!=="tx-body")renderTxTable();
+  });
+}
+function dataChanged(){renderKPI();renderMom();renderTransfers();renderBudget();document.dispatchEvent(new CustomEvent("dataChanged"))}
+// ---------- Spending by month (top of Transactions): by need (stacked bars) or by category ----------
+let trendChart=null,trendCat=lsGet(LS.trend,"Groceries");
+let tView="cat";  // always opens on By category; By need is one click away
+// The unfinished month: By category leaves it off unless "Show <month>" is ticked;
+// By need shows it unless "Hide <month>" is ticked. Each view remembers its own choice.
+const showPartial={cat:!!lsGet(LS.showPartial,false),need:!lsGet(LS.hidePartialNeed,false)};
+function trendMonths(){return !showPartial[tView]&&PARTIAL?MONTHS.filter(m=>m!==PARTIAL):MONTHS}
+function syncPartialBox(){
+  if(!PARTIAL)return;const cat=tView==="cat";
+  document.getElementById("hide-partial-lbl").textContent=(cat?"Show ":"Hide ")+mLabel(PARTIAL);
+  document.getElementById("hide-partial").checked=cat?showPartial.cat:!showPartial.need;
+}
+function renderTrendPills(){
+  const c=document.getElementById("trend-pills");c.innerHTML="";c.style.display=tView==="cat"?"":"none";
+  SPEND_CATS.forEach(cat=>{const b=document.createElement("button");b.className="pill cat-pill"+(cat===trendCat?" active":"");b.style.setProperty("--c",CAT_COLORS[cat]||"#3c6c8a");b.textContent=cat;b.onclick=()=>{trendCat=cat;lsSet(LS.trend,cat);renderTrendPills();renderTrend()};c.appendChild(b)});
+}
+function wireTrendControls(){
+  const sync=()=>document.querySelectorAll("#tchart-view button").forEach(b=>b.classList.toggle("on",b.getAttribute("data-v")===tView));
+  if(PARTIAL){
+    const box=document.getElementById("hide-partial");syncPartialBox();
+    document.getElementById("hide-partial-wrap").hidden=false;
+    box.addEventListener("change",()=>{
+      if(tView==="cat"){showPartial.cat=box.checked;lsSet(LS.showPartial,box.checked)}
+      else{showPartial.need=!box.checked;lsSet(LS.hidePartialNeed,box.checked)}
+      renderTrend();
+    });
+  }
+  document.getElementById("tchart-view").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;tView=b.getAttribute("data-v");sync();syncPartialBox();renderTrendPills();renderTrend()});
+  sync();
+}
+// Month labels: the unfinished month gets a *, the month picked above is bold.
+function monthTicks(TM){return {color:c=>TM[c.index]===txMonth?"#2a2a2a":"#8a857a",font:c=>({weight:TM[c.index]===txMonth?"700":"400"})}}
+function renderTrend(){
+  if(!chartVisible("trend-line",renderTrend))return;
+  const ctx=document.getElementById("trend-line");if(trendChart)trendChart.destroy();
+  const TM=trendMonths();
+  const labels=TM.map(m=>mLabel(m)+(m===PARTIAL?"*":""));
+  const note=document.getElementById("tchart-note");
+  const partialNote=!PARTIAL?"":TM.includes(PARTIAL)?"* "+mLabel(PARTIAL)+" is still in progress.":MON_FULL[+PARTIAL.slice(5,7)-1]+" is hidden because it's still in progress. "+(tView==="cat"?"Check":"Uncheck")+" to show.";
+  if(tView==="cat"){
+    const vals=TM.map(m=>spendByCat(m)[trendCat]||0);const col=CAT_COLORS[trendCat]||"#3c6c8a";
+    // The stretch into the unfinished month is dashed with a light gray fill: that month isn't over yet.
+    const pi=TM.indexOf(PARTIAL);
+    const GRAY="#aaa39a",isP=c=>c.p1DataIndex===pi;
+    const seg={borderDash:c=>isP(c)?[6,5]:undefined,borderColor:c=>isP(c)?GRAY:undefined,backgroundColor:c=>isP(c)?"rgba(138,133,122,.14)":undefined};
+    trendChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[{label:trendCat,data:vals,borderColor:col,backgroundColor:col+"33",fill:true,cubicInterpolationMode:"monotone",segment:pi>0?seg:undefined,
+      pointBorderColor:TM.map(m=>m===PARTIAL?GRAY:col),pointBackgroundColor:TM.map(m=>m===PARTIAL?"rgba(170,163,154,.35)":col+"33"),pointRadius:TM.map(m=>m===txMonth?7:4),pointHoverRadius:8}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{ticks:monthTicks(TM)},y:{beginAtZero:true,ticks:{callback:v=>"$"+v.toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.y)}}}}});
+    note.textContent=partialNote;
+    return;
+  }
+  // By need: each month's spending stacked Need / Could skip / Want / Not rated (bar height = total spent).
+  const parts=[{n:3,lbl:"Need",c:"#2f6f4e"},{n:2,lbl:"Could skip",c:"#c89b1e"},{n:1,lbl:"Want",c:"#b8423a"},{n:0,lbl:"Not rated",c:"#d9d4c9"}];
+  const sums=TM.map(m=>{const o=[0,0,0,0];monthTx(m).forEach(t=>{if(isRateable(t))o[getNeed(t)]+=-t.amount});return o});
+  const totals=sums.map(o=>o[0]+o[1]+o[2]+o[3]);
+  const datasets=parts.map(p=>({label:p.lbl,data:sums.map(o=>o[p.n]),backgroundColor:p.c,borderRadius:2,maxBarThickness:46}));
+  // Totals above the bars, sized to the room: full dollars, then "$7.4k", then just the picked month on a phone.
+  const totalLabels={id:"needTotals",afterDatasetsDraw(chart){const{ctx}=chart;const meta=chart.getDatasetMeta(datasets.length-1);
+    const room=chart.chartArea.width/Math.max(1,totals.length);
+    totals.forEach((v,i)=>{const bar=meta.data[i];if(!bar||!v)return;if(room<32&&TM[i]!==txMonth)return;
+      const txt=room>=56?money0(v):(v>=1000?"$"+(v/1000).toFixed(1)+"k":money0(v));
+      ctx.save();ctx.font="600 "+(room>=56?11:10)+"px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillStyle="#5a564e";ctx.textAlign="center";ctx.fillText(txt,bar.x,bar.y-6);ctx.restore()})}};
+  trendChart=new Chart(ctx,{type:"bar",data:{labels:labels,datasets:datasets},plugins:[totalLabels],options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
+    scales:{x:{stacked:true,grid:{display:false},ticks:monthTicks(TM)},y:{stacked:true,beginAtZero:true,ticks:{callback:v=>"$"+v.toLocaleString()}}},
+    plugins:{legend:{position:"bottom",reverse:true,labels:{usePointStyle:true,pointStyle:"circle",boxWidth:8,boxHeight:8,padding:16}},
+      tooltip:{mode:"index",itemSort:(a,b)=>b.datasetIndex-a.datasetIndex,callbacks:{
+        label:c=>{const i=c.dataIndex,amt=sums[i][parts[c.datasetIndex].n];return c.dataset.label+": "+money(amt)+" ("+(totals[i]?Math.round(amt/totals[i]*100):0)+"%)"},
+        footer:items=>"Total spent "+money(totals[items[0].dataIndex])}}}}});
+  note.textContent="Counts starting ratings from each category until you confirm or change them."+(partialNote?" "+partialNote:"");
+}
+
+// ---------- Budget ----------
+function renderBudget(){
+  const cats=SPEND_CATS.slice();const n=FULL.length||1;
+  let ok=0,watch=0,over=0;
+  const perCatMonth={};cats.forEach(c=>{perCatMonth[c]=MONTHS.map(m=>spendByCat(m)[c]||0)});
+  const isP=MONTHS.map(m=>m===PARTIAL);
+  const tbl=document.getElementById("budget-table");
+  let head='<thead><tr><th>Category</th><th>Budget/mo</th>'+MONTHS.map((m,i)=>'<th class="amt'+(isP[i]?" partial":"")+'">'+mLabel(m)+(isP[i]?"*":"")+'</th>').join("")+'<th class="amt">Avg</th><th>Status</th></tr></thead>';
+  let body="<tbody>";
+  cats.forEach(c=>{const arr=perCatMonth[c];const avg=arr.reduce((a,b,i)=>a+(isP[i]?0:b),0)/n;const b=budgets[c]||0;const pct=b>0?avg/b*100:(avg>0?999:0);
+    let rowbg,txt,pill,pillbg,avgcol;
+    if(pct<=85){rowbg="#e9f3ed";txt="#2f6f4e";avgcol="#2f6f4e";pill="Crushed It";pillbg="#2f6f4e";ok++}
+    else if(pct<=100){rowbg="#e9f3ed";txt="#2f6f4e";avgcol="#2f6f4e";pill="On Track";pillbg="#2f6f4e";ok++}
+    else if(pct<=110){rowbg="#fbe9d8";txt="#b86a2b";avgcol="#b86a2b";pill="Watch It";pillbg="#b86a2b";watch++}
+    else{rowbg="#fbe7e3";txt="#b8423a";avgcol="#b8423a";pill="Over Budget";pillbg="#b8423a";over++}
+    let cells=arr.map((v,i)=>{const col=v===0?"#aaa39a":(v>b?"#b8423a":"#2f6f4e");return '<td class="amt'+(isP[i]?" partial":"")+'" style="color:'+col+'">'+money0(v)+'</td>'}).join("");
+    body+='<tr style="background:'+rowbg+'"><td style="color:'+txt+';font-weight:600">'+c+'</td>'+
+      '<td><input type="number" data-cat="'+c+'" value="'+b+'"></td>'+cells+
+      '<td class="amt" style="color:'+avgcol+';font-weight:700">'+money0(avg)+'</td>'+
+      '<td><span class="badge" style="background:'+pillbg+'">'+pill+'</span></td></tr>'});
+  // TOTAL row: total budget (target monthly spend) + actual spend per month
+  let totB=0;cats.forEach(c=>{totB+=(budgets[c]||0)});
+  const monT=MONTHS.map((m,i)=>cats.reduce((sx,c)=>sx+perCatMonth[c][i],0));
+  const grandAvg=monT.reduce((a,b,i)=>a+(isP[i]?0:b),0)/n;
+  const monCells=monT.map((v,i)=>{const col=v>totB?"#b8423a":"#2f6f4e";return '<td class="amt'+(isP[i]?" partial":"")+'" style="color:'+col+';font-weight:700">'+money0(v)+'</td>'}).join("");
+  body+='<tr style="background:#efece4;border-top:2px solid #d8d4c8">'+
+    '<td style="font-weight:700">Total</td>'+
+    '<td class="amt" style="font-weight:700">'+money0(totB)+'</td>'+monCells+
+    '<td class="amt" style="font-weight:700">'+money0(grandAvg)+'</td>'+
+    '<td><span class="badge" style="background:#3c6c8a">Target '+money0(totB)+'/mo</span></td></tr>';
+  body+="</tbody>";tbl.innerHTML=head+body;
+  document.getElementById("budget-note").textContent=PARTIAL?"* "+mLabel(PARTIAL)+" is still in progress, so it's left out of the averages and status.":"";
+  document.getElementById("bt-ok").textContent=ok;document.getElementById("bt-watch").textContent=watch;document.getElementById("bt-over").textContent=over;
+  tbl.querySelectorAll('input[data-cat]').forEach(inp=>{inp.onchange=function(){const c=this.getAttribute("data-cat");budgets[c]=parseFloat(this.value)||0;saveBudgets();renderBudget()}});
+}
+
+// ---------- Saving ----------
+// Published as a claude.ai artifact, edits save to the artifact's database: they follow your account
+// across phone and computer, and Claude can read them. Opened as a plain file, the database isn't
+// there and edits stay in this browser's localStorage.
+// Layout: edits/<YYYY-MM> holds {txId: {category?, need?, note?}} for that month's transactions (a few
+// documents instead of one per transaction); settings/budgets holds budget changes; settings/xfer
+// holds transfer check-offs by income month.
+let DB=null;
+const editDoc={};                 // txId -> the edits/<month> document it's stored in
+const writeChain={};              // one write at a time per document
+function editMonth(id){if(editDoc[id])return editDoc[id];const t=TX_BY_ID[id];return t?t.date.slice(0,7):"other"}
+function dbWrite(path,body){
+  const prev=writeChain[path]||Promise.resolve();
+  const p=prev.then(()=>DB.doc(path).set(body)).then(()=>{document.getElementById("save-err").hidden=true})
+    .catch(e=>{console.error("Save failed for "+path+":",e);document.getElementById("save-err").hidden=false});
+  writeChain[path]=p;
+}
+function saveEdit(id){
+  if(!DB){lsSet(LS.edits,edits);return}
+  const t=TX_BY_ID[id];
+  const months=new Set([editMonth(id)].concat(((t&&t.prevIds)||[]).filter(p=>editDoc[p]).map(p=>editDoc[p])));
+  if(edits[id])editDoc[id]=editMonth(id);
+  months.forEach(m=>{const body={};Object.keys(edits).forEach(k=>{if(editMonth(k)===m)body[k]=edits[k]});dbWrite("edits/"+m,body)});
+}
+function budgetChanges(){const o={};Object.keys(budgets).forEach(c=>{if(budgets[c]!==FIN.budgets[c])o[c]=budgets[c]});return o}
+function saveBudgets(){if(DB)dbWrite("settings/budgets",budgetChanges());else lsSet(LS.bud,budgetChanges())}
+function saveXfer(){if(DB)dbWrite("settings/xfer",xferState);else lsSet(LS.xfer,xferState)}
+function rerenderAll(){
+  [renderKPI,renderMom,renderTransfers,renderBudget,renderTxTable,renderTrend,renderInsights,renderRecap].forEach(fn=>{try{fn()}catch(e){console.error(fn.name,e)}});
+}
+async function connectDb(){
+  if(DEMO)return;
+  if(!window.claude||typeof window.claude.use!=="function")return;
+  let db=null;try{db=await window.claude.use("db")}catch(e){db=null}
+  if(!db)return;
+  DB=db;
+  // Start from the database, not whatever this browser had.
+  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+  const onErr=e=>console.error("Database:",e&&e.code,e&&e.message);
+  db.collection("edits").onSnapshot(snap=>{
+    const next={};Object.keys(editDoc).forEach(k=>delete editDoc[k]);
+    snap.docs.forEach(d=>{const body=d.data()||{};Object.keys(body).forEach(id=>{if(body[id]){next[id]=Object.assign({},body[id]);editDoc[id]=d.id}})});
+    const prevEdits=edits;edits=next;adoptPrevEdits();
+    if(same(edits,prevEdits))return;
+    rerenderAll();
+  },onErr);
+  db.doc("settings/budgets").onSnapshot(snap=>{
+    const next=Object.assign({},FIN.budgets,snap.exists?snap.data():{});
+    if(same(next,budgets))return;budgets=next;rerenderAll();
+  },onErr);
+  db.doc("settings/recap").onSnapshot(snap=>{
+    const next=snap.exists?Object.assign({},snap.data()):{};
+    if(same(next,recapState)&&recapLoaded)return;recapState=next;recapLoaded=true;renderRecap();pickStartTab();
+  },onErr);
+  db.doc("settings/xfer").onSnapshot(snap=>{
+    const next=snap.exists?JSON.parse(JSON.stringify(snap.data())):{};
+    if(same(next,xferState))return;xferState=next;renderTransfers();
+  },onErr);
+}
+
+// ---------- Daily recap ----------
+// Lists every transaction that showed up in a sync after the last review (firstSeen, from sync.py),
+// so a purchase that posts days late still appears once. "Done for today" saves the newest firstSeen
+// on screen as reviewedThrough. Before the first review it shows the last 3 days.
+let recapState=DEMO?Object.assign({},FIN.demoRecap||{}):lsGet(LS.recap,{});let recapLoaded=false;
+let tabPicked=false;     // once you pick a tab, the page stops choosing one for them
+function recapItems(){
+  const thru=recapState.reviewedThrough;
+  let rows=FIN.transactions.filter(t=>t.firstSeen&&FIN.hidden.indexOf(getCat(t))<0);
+  if(thru)rows=rows.filter(t=>t.firstSeen>thru);
+  else{const cut=new Date((FIN.lastPull||"").slice(0,10)+"T00:00:00");cut.setDate(cut.getDate()-2);
+    const c=cut.toISOString().slice(0,10);rows=rows.filter(t=>t.date>=c)}
+  return rows.sort((a,b)=>b.date.localeCompare(a.date)||a.amount-b.amount);
+}
+function recapRow(t){
+  const cat=getCat(t);const d=new Date(t.date+"T00:00:00");
+  return '<li class="rc-item"><span class="rc-date">'+d.toLocaleDateString("en-US",{month:"short",day:"numeric"})+'</span>'+
+    '<div class="rc-what"><span class="desc-row"><span class="rc-desc" title="'+esc(t.rawDescription)+'">'+esc(t.displayDescription)+(t.pending?'<span class="pend">pending</span>':'')+'</span>'+noteBtn(t)+'</span>'+noteLine(t)+
+    '<span class="rc-acct">'+d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})+' &middot; '+esc(t.accountLabel)+'</span></div>'+
+    '<select class="category-select" data-id="'+esc(t.id)+'" aria-label="Category for '+esc(t.displayDescription)+'" style="background:'+(CAT_COLORS[cat]||"#b0a89a")+'22">'+catOptions(cat)+'</select>'+
+    '<span class="amt rc-amt" style="color:'+(t.amount<0?"#b8423a":"#2f6f4e")+'">'+money(t.amount)+'</span>'+needCell(t)+'</li>';
+}
+function renderRecap(){
+  const m=MONTHS[MONTHS.length-1];
+  const inc=realIncome(m),sp=spend(m),net=inc-sp;
+  const debt=CARDS.reduce((s,a)=>s+balanceFor(a,m),0);
+  const sav=FIN.accounts.filter(a=>a.type==="Savings").reduce((s,a)=>s+balanceFor(a,m),0);
+  document.getElementById("rc-month").textContent=mFull(m)+(m===PARTIAL?" so far":"");
+  const stat=(l,v,cls)=>'<div class="rc-stat"><div class="lbl">'+l+'</div><div class="val '+cls+'">'+v+'</div></div>';
+  document.getElementById("rc-stats").innerHTML=stat("Real Income",money(inc),"gray")+stat("Spent",money(sp),"gray")+
+    stat("Net",(net>=0?"+":"")+money(net),net>=0?"green":"red")+(HAS_CARDS?stat("Credit Card Debt",money(debt),"orange"):"")+(HAS_SAVINGS?stat("Total Savings",money(sav),"blue"):"");
+  setCount(document.getElementById("rc-stats"),3+(HAS_CARDS?1:0)+(HAS_SAVINGS?1:0));
+
+  const items=recapItems();
+  const spendRows=items.filter(isRateable),other=items.filter(t=>!isRateable(t));
+  const badge=document.getElementById("recap-tab");
+  badge.innerHTML='<span class="tl" data-t="Daily Recap">Daily Recap</span>'+(items.length?'<span class="badge" title="'+items.length+' new to review">'+items.length+'</span>':"");
+  const since=recapState.reviewedAt?"Since "+new Date(recapState.reviewedAt).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}):"Last 3 days";
+  document.getElementById("rc-since").textContent=since;
+  document.getElementById("rc-title").textContent=items.length?items.length+" new transaction"+(items.length===1?"":"s"):"New since your last review";
+  const body=document.getElementById("rc-body");
+  // Upcoming bills ride along with a review; once it's done, the recap is just "All caught up".
+  const due=billsDue();
+  document.getElementById("rc-bills-card").hidden=!items.length||!due.length;
+  if(items.length&&due.length)document.getElementById("rc-bills").innerHTML=billsHtml(due);
+  if(!items.length){
+    body.innerHTML='<div class="rc-empty"><b>All caught up</b>New transactions show up here after the morning sync.</div>';
+    return;
+  }
+  let h="";
+  if(spendRows.length){
+    const tot=spendRows.reduce((s,t)=>s-t.amount,0);
+    h+='<div class="rc-legend">Rate each one: <b>1</b> Want &middot; <b>2</b> Could skip &middot; <b>3</b> Need. Spent '+money(tot)+'.</div><ul class="rc-list">'+spendRows.map(recapRow).join("")+'</ul>';
+  }
+  if(other.length)h+='<div class="rc-sub">Income, transfers and payments</div><ul class="rc-list">'+other.map(recapRow).join("")+'</ul>';
+  h+='<div class="rc-done"><span>Ratings and categories save as you tap.</span><button type="button" class="btn" id="rc-done">Done for today</button></div>';
+  body.innerHTML=h;
+  body.querySelectorAll(".need").forEach(paintNeed);
+  document.getElementById("rc-done").onclick=function(){
+    // Everything in this sync counts as reviewed, including rows older than the first 3-day window.
+    const thru=FIN.transactions.reduce((mx,t)=>t.firstSeen&&t.firstSeen>mx?t.firstSeen:mx,recapState.reviewedThrough||"");
+    recapState={reviewedThrough:thru,reviewedAt:new Date().toISOString()};
+    if(DB)dbWrite("settings/recap",recapState);else lsSet(LS.recap,recapState);
+    renderRecap();
+  };
+}
+function wireRecap(){
+  wireEdits("rc-body");
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{tabPicked=true}));
+}
+// Open on the recap when there's something to review; switch back if the database says it's all reviewed.
+function pickStartTab(){
+  if(tabPicked)return;
+  const want=recapItems().length?"recap":"overview";
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.getAttribute("data-tab")===want));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===want));
+  drawPendingCharts(document.getElementById(want));
+}
+
+// ---------- Accounts tab ----------
+// Tapping an account opens that bank's sign-in page in a new tab (by institution name from Era).
+const SIGN_IN=Object.assign({"Ally Bank":"https://secure.ally.com/","Ally":"https://secure.ally.com/",
+  "American Express":"https://www.americanexpress.com/en-us/account/login","Amex":"https://www.americanexpress.com/en-us/account/login",
+  "Citi":"https://www.citi.com/login","Citibank":"https://www.citi.com/login","Chase":"https://secure.chase.com/web/auth/dashboard","Chase Bank":"https://secure.chase.com/web/auth/dashboard",
+  "Bank of America":"https://www.bankofamerica.com/","Wells Fargo":"https://connect.secure.wellsfargo.com/auth/login/present",
+  "Capital One":"https://verified.capitalone.com/auth/signin","Discover":"https://portal.discover.com/customersvcs/universalLogin/ac_main",
+  "U.S. Bank":"https://onlinebanking.usbank.com/","US Bank":"https://onlinebanking.usbank.com/","PNC":"https://www.pnc.com/en/personal-banking.html",
+  "Truist":"https://dias.bank.truist.com/ui/login","TD Bank":"https://onlinebanking.tdbank.com/","Navy Federal":"https://digitalomni.navyfederal.org/signin/",
+  "USAA":"https://www.usaa.com/my/logon","Charles Schwab":"https://client.schwab.com/Login/SignOn/CustomerCenterLogin.aspx",
+  "Marcus":"https://www.marcus.com/us/en/login","SoFi":"https://www.sofi.com/login/","Chime":"https://app.chime.com/","Apple Card":"https://card.apple.com/",
+  "Synchrony":"https://www.synchrony.com/","Barclays":"https://cards.barclaycardus.com/","Fidelity":"https://digital.fidelity.com/prgw/digital/login/full-page"},FIN.signIn||{});
+// Every linked account with today's balance from Era: bank accounts first, then what's owed on each card.
+// (Era doesn't share credit limits or payment due dates, so the cards show the amount owed only.)
+function renderAccounts(){
+  const asOf=list=>{const d=list.map(a=>a.balanceAsOf).filter(Boolean).sort()[0];return d?"As of "+new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric"}):""};
+  // Each balance's date from the bank; orange when it's 3+ days older than the last sync (that link isn't refreshing).
+  const ref=new Date(FIN.lastPull||Date.now());
+  const when=a=>{if(!a.balanceAsOf)return "";const dt=new Date(a.balanceAsOf);const stale=(ref-dt)/86400000>=3;
+    return ' &middot; <span class="dt'+(stale?" stale":"")+'"'+(stale?' title="The bank hasn&#39;t refreshed this balance since then"':"")+'>as of '+dt.toLocaleDateString("en-US",{month:"short",day:"numeric"})+'</span>'};
+  const sub=a=>esc(a.institution||"")+(a.type!=="CreditCard"?" &middot; "+esc(a.type):"")+(a.mask?" &middot;&middot;"+esc(a.mask):"")+when(a);
+  const row=(a,bal)=>{const url=SIGN_IN[a.institution];const inner='<div><span class="nm">'+esc(a.label)+(url?'<span class="go" aria-hidden="true">&#8599;</span>':"")+'</span><span class="sub">'+sub(a)+'</span></div><div class="bal">'+bal+'</div>';
+    return '<li>'+(url?'<a class="acct-row" href="'+url+'" target="_blank" rel="noopener noreferrer" title="Sign in to '+esc(a.institution)+'">'+inner+'</a>':'<div class="acct-row">'+inner+'</div>')+'</li>'};
+  const order={Checking:0,Savings:1};
+  const banks=FIN.accounts.filter(a=>a.type!=="CreditCard").sort((x,y)=>(order[x.type]??2)-(order[y.type]??2));
+  const cash=banks.reduce((s,a)=>s+(a.balance||0),0);
+  document.getElementById("acct-bank-cap").textContent=asOf(banks);
+  document.getElementById("acct-bank").innerHTML=banks.length?'<ul class="acct-list">'+banks.map(a=>row(a,a.balance==null?'<span class="na">Not set</span><small>ask Claude</small>':'<span class="'+(a.type==="Savings"?"blue":"")+'">'+money(a.balance)+'</span>')).join("")+'</ul>'+
+    '<div class="acct-total"><span>Total in the bank</span><b>'+money(cash)+'</b></div>':'<div class="empty">No bank accounts linked.</div>';
+  const cards=CARDS.slice().sort((x,y)=>(y.balance||0)-(x.balance||0));
+  const owed=cards.reduce((s,a)=>s+(a.balance||0),0);
+  document.getElementById("acct-card-cap").textContent=asOf(cards);
+  document.getElementById("acct-cards").innerHTML=cards.length?'<ul class="acct-list">'+cards.map(a=>{const b=a.balance||0;if(a.balance==null)return row(a,'<span class="na">Not set</span><small>ask Claude</small>');
+      return row(a,b<0?'<span class="green">'+money(-b)+'</span><small>credit</small>':'<span class="orange">'+money(b)+'</span><small>owed</small>')}).join("")+'</ul>'+
+    '<div class="acct-total"><span>Total owed</span><b class="orange">'+money(owed)+'</b></div>':'<div class="empty">No credit cards linked.</div>';
+  const net=cash-owed;
+  const nc=document.getElementById("acct-net-card");nc.classList.toggle("net-pos",net>=0);nc.classList.toggle("net-neg",net<0);
+  document.getElementById("acct-net").innerHTML=
+    '<div class="net-line"><span>In the bank</span><b>'+money(cash)+'</b></div>'+
+    '<div class="net-line"><span>Owed on cards</span><b class="orange">'+(owed>=0?"&minus;"+money(owed):"+"+money(-owed))+'</b></div>'+
+    '<div class="net-line total"><span>Net worth</span><b class="'+(net>=0?"green":"red")+'">'+(net>=0?"+":"")+money(net)+'</b></div>';
+}
+
+// Net worth at the end of each month: bank (checking + savings) minus every card, from the month-end
+// balances sync.py works back from today; the unfinished month's point is today's balance.
+let nwChart=null;
+function renderNetWorthChart(){
+  if(!chartVisible("nw-line",renderNetWorthChart))return;
+  const ms=BAL.months;if(!ms.length)return;
+  const vals=ms.map((m,i)=>BAL.accounts.reduce((s,a)=>s+(a.type==="CreditCard"?-a.values[i]:a.values[i]),0));
+  const ctx=document.getElementById("nw-line");if(nwChart)nwChart.destroy();
+  nwChart=new Chart(ctx,{type:"line",data:{labels:ms.map(m=>mLabel(m)+(m===PARTIAL?"*":"")),datasets:[{label:"Net worth",data:vals,borderColor:"#6a655c",
+    fill:{target:"origin",above:"rgba(47,111,78,.18)",below:"rgba(184,66,58,.18)"},cubicInterpolationMode:"monotone",pointRadius:4,pointHoverRadius:7,
+    pointBackgroundColor:vals.map(v=>v>=0?"#2f6f4e":"#b8423a"),pointBorderColor:vals.map(v=>v>=0?"#2f6f4e":"#b8423a")}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString()}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.parsed.y>0?"+":"")+money(c.parsed.y)}}}}});
+  const est=SAVINGS&&SAVINGS.estimatedBefore?ms.filter(m=>m<SAVINGS.estimatedBefore.slice(0,7)):[];
+  document.getElementById("nw-note").innerHTML="Bank minus card debt at the end of each month"+(PARTIAL?"; * "+mLabel(PARTIAL)+" = today":"")+"."+
+    (est.length?" "+mLabel(est[0])+"&ndash;"+mLabel(est[est.length-1])+" savings balances are estimates.":"");
+}
+
+// ---------- Insights tab ----------
+// One month at a time: how it went, what pulled it off track, and a short plan for the next month.
+// Compares against the month before and the average of up to 3 full months before it.
+let insMonth=FULL.length?FULL[FULL.length-1]:MONTHS[MONTHS.length-1];
+function renderInsMonthPills(){
+  const c=document.getElementById("ins-months");c.innerHTML="";
+  MONTHS.forEach(m=>{const b=document.createElement("button");b.className="pill"+(m===insMonth?" active":"");b.textContent=mLabel(m)+(m===PARTIAL?" (so far)":"");
+    b.onclick=()=>{insMonth=m;renderInsMonthPills();renderInsights()};c.appendChild(b)});
+}
+function renderInsights(){
+  const m=insMonth,i=MONTHS.indexOf(m),prev=i>0?MONTHS[i-1]:null,partial=m===PARTIAL;
+  const before=FULL.filter(x=>x<m).slice(-3);
+  const avg=f=>before.length?before.reduce((s,x)=>s+f(x),0)/before.length:null;
+  const inc=realIncome(m),sp=spend(m),net=inc-sp,cats=spendByCat(m);
+  const nextM=MONTHS[i+1]||(()=>{const d=new Date(+m.slice(0,4),+m.slice(5,7),1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")})();
+  const sign=v=>(v>=0?"+":"")+money0(v);
+  const cl=(kind,html)=>'<div class="callout c-'+kind+'">'+html+'</div>';
+
+  // At a glance: income, spent, net, share kept, each with the change from the month before.
+  document.getElementById("ins-title").textContent=mFull(m)+(partial?" so far":" at a glance");
+  const chg=(v,pv,upIsGood)=>{if(prev==null||partial)return '<div class="chg">&nbsp;</div>';const d=v-pv;if(Math.abs(d)<0.5)return '<div class="chg">Same as '+mLabel(prev)+'</div>';
+    const up=d>0;return '<div class="chg '+(up?(upIsGood?"up-good":"up-bad"):(upIsGood?"down-bad":"down-good"))+'">'+(up?"&#9650; ":"&#9660; ")+money0(Math.abs(d))+' vs '+mLabel(prev)+'</div>'};
+  const pInc=prev?realIncome(prev):0,pSp=prev?spend(prev):0;
+  const kept=inc>0?Math.round(net/inc*100):null;
+  const stat=(l,v,cls,c)=>'<div><div class="lbl">'+l+'</div><div class="val '+cls+'">'+v+'</div>'+c+'</div>';
+  document.getElementById("ins-stats").innerHTML=stat("Real Income",money0(inc),"gray",chg(inc,pInc,true))+stat("Spent",money0(sp),"gray",chg(sp,pSp,false))+
+    stat("Net",sign(net),net>=0?"green":"red",chg(net,pInc-pSp,true))+stat("Kept",kept==null?"&ndash;":kept+"%",kept!=null&&kept>=10?"green":kept!=null&&kept<0?"red":"gray",'<div class="chg">of income</div>');
+
+  // How you did
+  const did=[];
+  if(partial)did.push(cl("neu",mFull(m)+" is still in progress, so these are the numbers so far."));
+  if(inc>0)did.push(net>=0?cl("good","You kept <b>"+money0(net)+"</b> of the "+money0(inc)+" that came in ("+kept+"%)."):cl("bad","You spent <b>"+money0(-net)+"</b> more than came in ("+money0(sp)+" spent, "+money0(inc)+" in)."));
+  else did.push(cl("neu","No income came in this month; "+money0(sp)+" went out."));
+  const aSp=avg(spend);
+  if(aSp!=null&&!partial){const d=sp-aSp;did.push(Math.abs(d)<50?cl("neu","Spending was about the same as your usual "+money0(aSp)+"."):d<0?cl("good","Spending was <b>"+money0(-d)+" lower</b> than your usual "+money0(aSp)+"."):cl("warn","Spending was <b>"+money0(d)+" higher</b> than your usual "+money0(aSp)+"."))}
+  // Giving above budget isn't something to cut, so Tithe is left out of the budget check and the "improve" lists.
+  const budCats=SPEND_CATS.filter(c=>budgets[c]>0&&c!=="Tithe");
+  const over=budCats.filter(c=>(cats[c]||0)>budgets[c]).sort((a,b)=>((cats[b]||0)-budgets[b])-((cats[a]||0)-budgets[a]));
+  if(budCats.length){const ok=budCats.length-over.length;did.push(cl(over.length?(ok>=over.length?"yel":"bad"):"good","You stayed within budget in <b>"+ok+" of "+budCats.length+"</b> categories"+(over.length?"; "+over.map(c=>c).join(", ")+" went over.":". Nice work.")))}
+  if(cats["Tithe"]>0)did.push(cl("good","You gave <b>"+money0(cats["Tithe"])+"</b> in tithe and giving."));
+  // biggest win: the category that dropped the most against its usual
+  if(before.length&&!partial){let best=null;SPEND_CATS.forEach(c=>{if(c==="Tithe")return;const a=avg(x=>spendByCat(x)[c]||0),d=(cats[c]||0)-a;if(a>=30&&(!best||d<best.d))best={c,d,a}});
+    if(best&&best.d<=-25)did.push(cl("good","Best improvement: <b>"+best.c+"</b> was "+money0(-best.d)+" below your usual "+money0(best.a)+"."))}
+  document.getElementById("ins-did").innerHTML=did.join("");
+
+  // Where to improve
+  const imp=[];
+  over.forEach(c=>imp.push(cl("bad","<b>"+c+"</b>: "+money0(cats[c])+" against a "+money0(budgets[c])+" budget, "+money0(cats[c]-budgets[c])+" over.")));
+  if(before.length&&!partial){SPEND_CATS.filter(c=>!over.includes(c)&&c!=="Tithe").map(c=>{const a=avg(x=>spendByCat(x)[c]||0);return {c,a,d:(cats[c]||0)-a}})
+    .filter(x=>x.d>=40&&x.d>=x.a*0.25).sort((a,b)=>b.d-a.d).slice(0,2)
+    .forEach(x=>imp.push(cl("warn","<b>"+x.c+"</b> ran "+money0(x.d)+" above your usual "+money0(x.a)+".")))}
+  const rated=monthTx(m).filter(isRateable);
+  const sumNeed=n=>rated.filter(t=>getNeed(t)===n).reduce((s,t)=>s-t.amount,0);
+  const want=sumNeed(1),skip=sumNeed(2);
+  const top=n=>{const g={};rated.filter(t=>getNeed(t)===n).forEach(t=>{const k=t.displayDescription||t.rawDescription;g[k]=(g[k]||0)-t.amount});
+    return Object.keys(g).sort((a,b)=>g[b]-g[a]).slice(0,3).map(k=>esc(k)+" "+money0(g[k])).join(", ")};
+  if(want>0)imp.push(cl("yel","<b>"+money0(want)+"</b> went to Wants (1)"+(top(1)?": "+top(1)+".":".")));
+  if(skip>0)imp.push(cl("yel","<b>"+money0(skip)+"</b> went to Could skip (2)"+(top(2)?": "+top(2)+".":".")));
+  const big=rated.filter(t=>getNeed(t)!==3&&-t.amount>=75).sort((a,b)=>a.amount-b.amount).slice(0,3);
+  if(big.length)imp.push(cl("neu","Biggest non-essential purchases: "+big.map(t=>esc(t.displayDescription||t.rawDescription)+" "+money0(-t.amount)+" ("+esc(getCat(t))+")").join(", ")+"."));
+  if(!imp.length)imp.push(cl("good","Nothing stood out. Every category was on budget and nothing ran well above normal."));
+  document.getElementById("ins-improve").innerHTML=imp.join("");
+
+  // Plan for next month: concrete targets and what they'd free up.
+  document.getElementById("ins-plan-title").textContent=partial?"Plan for the rest of "+mFull(m):"Plan for "+mFull(nextM);
+  const plan=[];let save=0;
+  over.slice(0,3).forEach(c=>{const s2=cats[c]-budgets[c];save+=s2;plan.push("Keep <b>"+c+"</b> to its "+money0(budgets[c])+" budget (saves "+money0(s2)+").")});
+  if(want>0){const s2=want/2;save+=s2;plan.push("Cut Wants in half (saves about "+money0(s2)+").")}
+  const subs=monthTx(m).filter(t=>t.amount<0&&getCat(t)==="Subscriptions");
+  if(subs.length){const tot=subs.reduce((s,t)=>s-t.amount,0);plan.push("Review subscriptions: "+money0(tot)+" this month across "+subs.length+" ("+subs.slice(0,4).map(t=>esc(t.displayDescription)).join(", ")+(subs.length>4?", …":"")+"). Cancel any you don't use.")}
+  if(budgets["Dining Out"]>0&&(cats["Dining Out"]||0)>0){const n=monthTx(m).filter(t=>t.amount<0&&getCat(t)==="Dining Out").length;plan.push("Dining out: "+n+" times for "+money0(cats["Dining Out"])+" (about "+money0(cats["Dining Out"]/n)+" each). Planning a few more meals at home is the easiest win.")}
+  let html=plan.length?'<ul class="ins-list">'+plan.map(x=>"<li>"+x+"</li>").join("")+"</ul>":"";
+  if(save>0)html+=cl(net+save>=0?"good":"yel","Doing the above would keep about <b>"+money0(save)+"</b> more"+(inc>0?", for a net of "+sign(net+save)+" on this month's income.":"."));
+  else if(!plan.length)html=cl("good","Keep doing what you did this month.");
+  document.getElementById("ins-plan").innerHTML=html;
+}
+
+// ---------- tabs + init ----------
+// A chart built inside a hidden tab has no size yet, so the first time its tab opened it grew in from
+// the top-left corner. Charts in a hidden tab wait and are drawn when their tab opens.
+const pendingCharts={};
+function chartVisible(id,draw){
+  if(document.getElementById(id).closest(".panel").classList.contains("active")){delete pendingCharts[id];return true}
+  pendingCharts[id]=draw;return false;
+}
+function drawPendingCharts(panel){
+  Object.keys(pendingCharts).forEach(id=>{if(panel.contains(document.getElementById(id))){const draw=pendingCharts[id];delete pendingCharts[id];draw()}});
+}
+function wireTabs(){
+  document.querySelectorAll(".tab").forEach(t=>{t.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");const panel=document.getElementById(t.getAttribute("data-tab"));panel.classList.add("active");
+    drawPendingCharts(panel);
+  }});
+}
+document.addEventListener("dataChanged",function(){renderTrend();renderInsights()});
+(function(){
+  var fns=[wireTabs,renderHeader,renderMonthPills,renderKPI,wireCardPicker,wireDebtPopover,renderMom,renderTransfers,renderBills,
+    renderTxMonthPills,fillAccountFilter,renderTxTable,wireSortHeaders,wireFilters,wireNeedFilter,wireTableEdits,
+    wireTrendControls,renderTrendPills,renderTrend,renderBudget,renderAccounts,renderNetWorthChart,renderInsMonthPills,renderInsights,renderRecap,wireRecap,wireNewCategoryTip,wireNotes,pickStartTab];
+  fns.forEach(function(fn){try{fn()}catch(e){console.error("Init error in "+fn.name+":",e)}});
+  connectDb();
+})();
+</script>
+</body>
+</html>
