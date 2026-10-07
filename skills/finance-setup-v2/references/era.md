@@ -3,8 +3,8 @@
 Era Context (era.app) links to their banks and gives Claude read-only access to balances and
 transactions through an MCP connector. Claude never sees bank logins.
 
-## A. Era account (they do this, in the browser pane)
-1. Open **https://era.app/#via=kj** in the browser pane (KJ's referral link). Before they sign up, tell them once,
+## A. Era account (they do this, in their own browser)
+1. Open **https://era.app/#via=kj** in their own browser (`open "<url>"` on a Mac; KJ's referral link). Before they sign up, tell them once,
    plainly: "This is KJ's referral link. It costs you exactly the same; if you choose a paid Era plan,
    KJ gets a share from Era. If this plugin has been useful, using it is a way to support KJ. If you'd
    rather not, https://era.app works the same." Use whichever they choose; never push. If they already
@@ -12,7 +12,8 @@ transactions through an MCP connector. Claude never sees bank logins.
    is free; more than 2 (every checking, savings and card counts) needs the $9/month plan.** Remind them
    before they link a third account, and have them confirm the current price on era.app.
 2. In Era, they link each bank and card ("Connect account"). They search for their bank and sign in
-   through the bank's secure window themselves.
+   through the bank's secure window themselves. Doing this in their normal browser means their saved
+   bank passwords fill in; some banks hand off to their phone's bank app to approve, which is expected.
    - **Link through MX.** Era may offer more than one connection service (MX, Stripe). Recommend MX
      for every bank and card: in KJ's use (Oct 2026) the Stripe-linked accounts kept sending new
      transactions but their balances stayed stuck on the day they were linked, while MX links refreshed
@@ -28,7 +29,7 @@ transactions through an MCP connector. Claude never sees bank logins.
      them still shows up as a transaction.
 
 ## B. Connect Era to Claude
-1. In the browser pane open https://claude.ai/settings/connectors (Customize > Connectors). They add
+1. In their own browser open https://claude.ai/settings/connectors (Customize > Connectors). They add
    **Era Context** (search "Era"; if it isn't listed, "Add custom connector" with the URL
    `https://context.era.app`) and approve it.
 2. Connectors added on claude.ai show up in Claude Code in a **new session**. If you can't find Era

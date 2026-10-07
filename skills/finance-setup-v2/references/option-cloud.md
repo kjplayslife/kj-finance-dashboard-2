@@ -8,14 +8,14 @@ and use the plan's normal usage (a run takes about a minute); no API credits.
 Do this after the first publish works (SKILL.md step 7), so the routine has a dashboard to update.
 
 ## A. GitHub account and the folder as a private repo
-1. **GitHub account**: if they don't have one, open https://github.com/signup in the browser pane; they
+1. **GitHub account**: if they don't have one, open https://github.com/signup in their own browser; they
    sign up themselves (free plan is fine).
 2. **Command line tools** on this Mac: `git --version` (if missing, macOS offers to install the
    command line tools; accept). `gh --version` for the GitHub CLI; if missing: `brew install gh` when
-   Homebrew exists, otherwise open https://cli.github.com in the browser pane and have them download and
+   Homebrew exists, otherwise open https://cli.github.com in their browser and have them download and
    run the macOS installer.
 3. **Sign gh in**: `gh auth login --hostname github.com --git-protocol https --web`. It prints a one-time
-   code and opens github.com/login/device; they enter the code and approve in the browser pane. Check:
+   code and opens github.com/login/device; they enter the code and approve in their browser. Check:
    `gh auth status` shows their account.
 4. **Copy ROUTINE.md** into the folder: `cp "${CLAUDE_PLUGIN_ROOT}/engine/ROUTINE.md" .`
 5. **Create the repo and push** (repo name e.g. `my-finances`; always private):
@@ -29,7 +29,7 @@ Do this after the first publish works (SKILL.md step 7), so the routine has a da
    `main` just has to exist. The `.gitignore` keeps `csv/` (raw bank exports) out of the repo.
 
 ## B. Let Claude's cloud see the repo
-1. In the browser pane open https://claude.ai/settings/connectors and connect **GitHub** (it may say
+1. In their own browser open https://claude.ai/settings/connectors and connect **GitHub** (it may say
    "GitHub Integration"). **Sign in with the same GitHub account that owns the repo.** If their browser is
    signed in to a different GitHub account, the routine later fails with "repository could not be
    found" even though everything looks connected; fix by disconnecting GitHub on claude.ai and

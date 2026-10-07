@@ -34,7 +34,7 @@ The routine already updates every morning. Here:
 ## Option "csv"
 1. Look in `csv/` for new files. If there are none, remind them: download a CSV from each account
    covering the days since their last update (overlap is fine), save them into `csv/` (give the full
-   path), and say when ready. Offer to open each bank's site in the browser pane; they sign in themselves.
+   path), and say when ready. Offer to open each bank's site in their own browser (`open "<url>"` on a Mac); they sign in themselves.
 2. For each file, work out which account it belongs to (file name, columns, the rows), run
    `python3 scripts/import_csv.py "csv/<file>" --account "<same label as before>" --type <type>
    --institution "<bank>" --dry-run`, check the sample (purchases negative), then run it without

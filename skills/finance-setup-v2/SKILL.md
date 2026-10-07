@@ -27,10 +27,12 @@ signing in to their bank, choices).
   versions. Every 2.0 skill ends in "-v2" (finance-setup-v2, update-finances-v2, finance-customize-v2); if
   your skill list shows other finance or dashboard skills without "-v2" from another plugin, that's an
   old one: name it for them.
-- **Do sign-ups in the built-in browser.** Recommend they do every account step (Era, their bank, GitHub,
-  claude.ai settings) in the browser pane inside the Claude app (Claude Code's built-in browser), so you
-  can see where they are and help if they get stuck. Open pages there with the browser tools
-  (`mcp__Claude_Browser__*`). If those tools aren't available, give them the link to open themselves.
+- **Sign-ups and bank logins happen in their own browser** (Chrome, Safari, whatever they normally use),
+  not the Claude app's built-in browser. That's where their saved passwords are, and when Era connects
+  a bank it hands off to the bank's site or app, which works best there. Open each link in their
+  default browser for them: `open "<url>"` on a Mac, `cmd.exe /c start "" "<url>"` on Windows (or just
+  give them the link). Then ask them to tell you when each step is done; if they get stuck, ask what
+  they see (or a screenshot). Use the built-in browser pane only for checking the dashboard itself.
 - **They type their own passwords.** Never type passwords, bank logins, card numbers or codes for them,
   never read them aloud from the screen, and never ask for them in chat. When a login page is up, hand
   over: "Sign in there; tell me when you're in."

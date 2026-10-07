@@ -27,8 +27,8 @@ want to update. Fully private, fully manual.
 ## What you need
 - **A paid Claude plan: Pro or higher** (Max, Team or Enterprise also work). The daily cloud update
   needs it.
-- **The Claude desktop app** (Mac or Windows), using the **Code** tab. Its built-in browser is where
-  you'll do the sign-ups, so Claude can help if you get stuck.
+- **The Claude desktop app** (Mac or Windows), using the **Code** tab. Sign-ups and bank logins open in
+  your normal browser (Chrome, Safari...), where your saved passwords are.
 - **The Claude phone app** (iPhone or Android), signed in, with notifications on: that's where the
   morning update and your dashboard show up.
 - **An Era account** ([sign up here](https://era.app/#via=kj)). Free for up to 2 linked accounts; more than 2 (each

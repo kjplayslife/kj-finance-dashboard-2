@@ -5,7 +5,7 @@ Nothing connects to their bank. They download a CSV export from each account; Cl
 ## First import
 1. **List the accounts** they want in the dashboard: for each, a short name ("Chase Checking"), the type
    (Checking, Savings or CreditCard), the bank, and the last four digits (optional).
-2. **Download each CSV** in the browser pane: open the bank's website there, they sign in themselves,
+2. **Download each CSV** in their own browser (saved passwords): open the bank's website for them, they sign in themselves,
    then you guide them to the export. Typical places:
    - Chase: account > Download account activity (icon above transactions) > CSV, date range.
    - Bank of America: account > Download > "Microsoft Excel format" (CSV).
@@ -16,8 +16,8 @@ Nothing connects to their bank. They download a CSV export from each account; Cl
    - Discover: Activity > Download > CSV. Ally: account > Download > CSV.
    - Credit unions and others: look for "Export", "Download", or a down-arrow near the transactions.
    Ask for **year-to-date at least** (Jan 1 of this year to today) so the dashboard has the whole year;
-   more is fine if the bank allows it. If the browser pane can't download
-   files, they use their normal browser and move the file. Have them put every CSV in the `csv/` folder
+   more is fine if the bank allows it. Downloads land in their Downloads
+   folder; have them put every CSV in the `csv/` folder
    inside the finance folder (tell them the full path).
 3. **Import each file**, checking first with `--dry-run`:
    ```bash
