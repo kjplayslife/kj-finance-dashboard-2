@@ -44,6 +44,11 @@ for _r in RULES:
 NON_SPEND = set(CONFIG["non_spend"])
 ERA_CFG = CONFIG.get("era") or {}
 EXCLUDED = ERA_CFG.get("exclude_accounts", {})
+# era.only_accounts: when set, every Era account NOT listed is left out (safer than exclude_accounts
+# when one Era login holds accounts for two dashboards: a relinked account gets a new key).
+ONLY = ERA_CFG.get("only_accounts") or None
+def skip_account(key):
+    return key in EXCLUDED or (ONLY is not None and key not in ONLY)
 LATEST_PULL = None  # start time of the newest pull or import (set in main)
 
 
@@ -91,13 +96,13 @@ def load_era():
     for called_at, kind, resp, path in calls:
         if kind == "accounts":
             for a in resp.get("accounts", []):
-                if a.get("visibility") == "tier_excluded" or a["account_group_key"] in EXCLUDED:
+                if a.get("visibility") == "tier_excluded" or skip_account(a["account_group_key"]):
                     continue
                 a = dict(a, label=labels.get(a["account_group_key"], a["name"]), as_of=called_at)
                 accounts[a["account_group_key"]] = a
             continue
         for t in resp.get("transactions", []):
-            if t["account_group_key"] in EXCLUDED:
+            if skip_account(t["account_group_key"]):
                 continue
             t = dict(t, _file=path, _called_at=called_at)
             by_id[t["transaction_id"]] = t
@@ -277,6 +282,29 @@ def pair_refunds(rows):
             c["category"] = best[1]["category"] = "Reimbursed"
 
 
+def shift_early_bills(rows):
+    """config bill_month_shift = {"match": REGEX, "days_before": N}: a matching bill that posts in the
+    last N days of a month is paid early for the next month, so it counts on the 1st of that month.
+    The real posting date is kept as postedDate (balances use it) and shown in the name."""
+    cfg = CONFIG.get("bill_month_shift")
+    if not cfg:
+        return rows
+    rx, n = re.compile(cfg["match"], re.I), int(cfg.get("days_before", 2))
+    for r in rows:
+        if r["amount"] >= 0 or not rx.search(r["rawDescription"]):
+            continue
+        dt = d(r["date"])
+        last = calendar.monthrange(dt.year, dt.month)[1]
+        if dt.day <= last - n:
+            continue
+        nxt = date(dt.year + 1, 1, 1) if dt.month == 12 else date(dt.year, dt.month + 1, 1)
+        r["postedDate"] = r["date"]
+        r["date"] = nxt.isoformat()
+        r["displayDescription"] = "%s (%s bill, posted %s)" % (
+            r["displayDescription"], nxt.strftime("%b"), dt.strftime("%b %-d"))
+    return rows
+
+
 def apply_overrides(rows):
     ov = load_json(os.path.join(DATA, "overrides.json"), {}).get("byId", {})
     for r in rows:
@@ -330,7 +358,8 @@ def month_end_balances(rows, accounts, months):
     for a in accounts:
         if a["type"] not in ("Checking", "Savings", "CreditCard") or a["balance"] is None:
             continue
-        changes = [(r["date"], r["amount"]) for r in rows if r["accountLabel"] == a["label"] and not r["pending"]]
+        changes = [(r.get("postedDate", r["date"]), r["amount"]) for r in rows
+                   if r["accountLabel"] == a["label"] and not r["pending"]]
         first = min((dt for dt, _ in changes), default=None)
         # Checking/savings: money in raises the balance. Cards: a charge (negative) raises what's owed.
         sign = -1 if a["type"] == "CreditCard" else 1
@@ -419,9 +448,10 @@ def main():
         raise SystemExit("No transactions yet. Pull from Era (save_pull.py) or import a CSV (import_csv.py) first.")
     categorize_all(rows)
     apply_overrides(rows)
+    shift_early_bills(rows)
 
     keep = ("id", "date", "accountLabel", "rawDescription", "displayDescription", "amount",
-            "category", "need", "pending", "source", "needsReview")
+            "category", "need", "pending", "source", "needsReview", "postedDate")
     txs = [{k: r.get(k, 0 if k == "need" else False) for k in keep} for r in rows]
     for t, r in zip(txs, rows):
         if r.get("firstSeen"):

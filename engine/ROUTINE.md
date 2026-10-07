@@ -23,7 +23,9 @@ git log -1 --oneline
 1. Find the Era tools with ToolSearch (search "Era" or "list_transactions").
 2. Call `accounts__list_financial_accounts` with `include_hidden: true`.
 3. For every account it returns, except accounts marked `visibility: "tier_excluded"` and any key listed
-   under `era.exclude_accounts` in `data/config.json`, call `transactions__list_transactions` with:
+   under `era.exclude_accounts` in `data/config.json`, call `transactions__list_transactions` with
+   (if `era.only_accounts` is set, pull ONLY the keys listed there; the same Era login may hold
+   accounts that belong to another dashboard, and those must never be pulled here):
    `account_group_key: <key>`, `page_size: 100`, `include_pending: true`,
    `from_date: <today minus 21 days, YYYY-MM-DD>`.
    Read `pagination.total_pages` and fetch every page (same arguments plus `page`).

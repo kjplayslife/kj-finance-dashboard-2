@@ -44,6 +44,10 @@ transactions through an MCP connector. Claude never sees bank logins.
 1. `accounts__list_financial_accounts` with `include_hidden: true`. Skip accounts marked
    `visibility: "tier_excluded"` and anything they say to leave out (add those keys to
    `era.exclude_accounts`). Note each account's `account_group_key`, name, type and balance.
+   **If this Era login also feeds another dashboard** (e.g. a business dashboard next to a personal
+   one), set `era.only_accounts` in data/config.json to this dashboard's own keys, and in the OTHER
+   folder add these keys to its exclude list (or its own `only_accounts`). Relinking a bank gives its
+   accounts new keys, so an exclude list alone lets them leak in; `only_accounts` can't.
 2. For each account: `transactions__list_transactions` with `account_group_key`, `page_size: 100`,
    `include_pending: true`, `from_date` = two years ago (YYYY-MM-DD). Read `pagination.total_pages` and
    fetch every page (same arguments + `page`). Max 3 calls in parallel.

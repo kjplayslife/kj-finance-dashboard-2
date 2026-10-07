@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "kj-finance-dashboard-2",
   "displayName": "KJ Finance Dashboard 2.0",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "description": "A personal finance dashboard that Claude sets up for you: daily recap, budgets, insights, accounts and net worth, as a private claude.ai page you can open on your phone. Three ways to feed it: fully automatic (Era + a daily cloud routine), Era updated from your computer, or bank CSV files only.",
   "author": {
     "name": "KJ Rainey",

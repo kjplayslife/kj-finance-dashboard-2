@@ -17,7 +17,11 @@ push to `claude/data` so the routine uses the change. After any change: `python3
   `need_defaults` (category -> starting rating 1 Want / 2 Could skip / 3 Need), `non_spend` (categories
   that aren't spending: Income, Card Payments, Transfers, Reimbursed, Gift), `hidden` (left out of the
   Daily Recap), `era.account_labels` (Era account key -> display name), `era.exclude_accounts` (Era keys
-  to ignore), `manual_balances` (CSV accounts), `sign_in` (institution -> sign-in URL for the Accounts tab).
+  to ignore), `era.only_accounts` (when set, ONLY these Era keys are read; use it when one Era login
+  feeds two dashboards, e.g. personal and business, since a relinked account gets a new key that an
+  exclude list would miss), `bill_month_shift` (`{"match": REGEX, "days_before": 2}`: a matching bill
+  that posts in a month's last N days counts on the 1st of the next month; balances keep the real
+  date), `manual_balances` (CSV accounts), `sign_in` (institution -> sign-in URL for the Accounts tab).
 - `data/category-rules.json`: ordered rules, first match wins; put the person's own rules at the top.
   `{"match": "REGEX", "category": "...", "display": "Clean Name", "when": "in"|"out", "amount": 12.34}`.
 - `data/overrides.json`: one-off fixes by transaction id: `{"byId": {"<id>": {"category", "display", "date", "need"}}}`.
@@ -42,7 +46,13 @@ push to `claude/data` so the routine uses the change. After any change: `python3
 - **Title**: `dashboard_title`.
 - **Account name**: Era -> `era.account_labels[key]`; CSV -> rename the `label` in each `data/raw/csv-*.json`
   for that account and the key in `manual_balances`, and use the new name on future imports.
-- **Hide an account**: Era -> add its key to `era.exclude_accounts`.
+- **Hide an account**: Era -> add its key to `era.exclude_accounts` (or, if `era.only_accounts` is set,
+  remove it there).
+- **Owner's pay / owner draws** (business dashboards): add an "Owner's Pay" category (put it in
+  `non_spend`) and a rule for transfers to the owner's personal account. Its Overview card and chart
+  appear automatically when that category exists.
+- **A bill paid a day early lands in the wrong month** (e.g. a phone bill on the 31st for next month):
+  set `bill_month_shift` with a regex for that payee.
 - **Something counted wrong** ("that's not income, it's my own transfer"): add a rule (e.g. category
   Transfers, `"when": "in"`) rather than one-off overrides, so future rows are right too.
 - **Update to the newest plugin version**: `python3 "${CLAUDE_PLUGIN_ROOT}/engine/scripts/setup_folder.py"

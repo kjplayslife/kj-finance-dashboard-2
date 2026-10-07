@@ -46,7 +46,7 @@ h1{font-size:22px;margin:0 0 2px;font-weight:600}
 .kpi .lbl{font-size:13px;color:#8a857a;font-weight:600}
 .kpi .val{font-size:clamp(20px,2.4vw,26px);font-weight:700;margin:4px 0 2px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .kpi .note{font-size:11px;color:#aaa39a}
-.orange{color:#b86a2b}.gray{color:#6a655c}
+.orange{color:#b86a2b}.gray{color:#6a655c}.purple{color:#8a6fb0}
 /* Cards double as the chart picker: light border on hover, the chart's color when it's the one shown. */
 .kpi.pick{cursor:pointer;transition:border-color .12s,box-shadow .12s}
 .kpi.pick:hover{border-color:#c9c3b6}
@@ -517,6 +517,9 @@ function money0(n){if(n==null||isNaN(n))n=0;const neg=n<0;n=Math.abs(n);return (
 
 function monthTx(m){return BY_MONTH[m]||[]}
 function realIncome(m){let s=0;monthTx(m).forEach(t=>{if(getCat(t)==="Income"&&t.amount>0)s+=t.amount});return s}
+// Owner's Pay card: shown when the folder has an "Owner's Pay" category (a business dashboard).
+const HAS_OWNER_PAY=(FIN.categories||[]).indexOf("Owner's Pay")>=0;
+function ownerPay(m){let s=0;monthTx(m).forEach(t=>{if(getCat(t)==="Owner's Pay"&&t.amount<0)s+=-t.amount});return s}
 function spend(m){let s=0;monthTx(m).forEach(t=>{const c=getCat(t);if(!NON_SPEND[c]&&t.amount<0)s+=-t.amount});return s}
 const CARDS=FIN.accounts.filter(a=>a.type==="CreditCard");
 function spendByCat(m){const o={};monthTx(m).forEach(t=>{const c=getCat(t);if(!NON_SPEND[c]&&t.amount<0)o[c]=(o[c]||0)+(-t.amount)});return o}
@@ -558,12 +561,13 @@ function renderKPI(){
   const bm=balMonth(curMonth);
   const sav=FIN.accounts.filter(a=>a.type==="Savings").reduce((s,a)=>s+balanceFor(a,bm),0);
   const est=SAVINGS&&SAVINGS.estimatedBefore&&bm<SAVINGS.estimatedBefore.slice(0,7)&&!isLatestMonth(bm);
-  const box=document.getElementById("ov-kpis");setCount(box,3+(HAS_CARDS?1:0)+(HAS_SAVINGS?1:0));
+  const box=document.getElementById("ov-kpis");setCount(box,3+(HAS_CARDS?1:0)+(HAS_SAVINGS?1:0)+(HAS_OWNER_PAY?1:0));
   box.innerHTML=
    kpi("income","Real Income",money(inc),"gray")+
    kpi("spending","Spent",money(sp),"gray")+
    kpi("net","Net",(net>=0?"+":"")+money(net),net>=0?"green":"red","","",net>=0?"net-pos":"net-neg")+
    (HAS_CARDS?debtKpi():"")+
+   (HAS_OWNER_PAY?kpi("ownerpay","Owner's Pay",money(sumOver(curMonth,ownerPay)),"purple","","Paid to yourself"):"")+
    (HAS_SAVINGS?kpi("savings","Total Savings",money(sav),"blue",est?'<span class="est" title="Estimated: before the first transaction on record for this account">est.</span>':"",
      balanceNote(bm,FIN.accounts.filter(a=>a.type==="Savings"))):"");
 }
@@ -648,8 +652,9 @@ const MOM=[
   {key:"spending",label:"Spending",color:"#b8423a"},
   {key:"net",label:"Net",color:"#6a655c"},
   {key:"debt",label:"Credit card debt",color:"#b86a2b",balance:true},
-  {key:"savings",label:"Savings",color:"#3c6c8a",balance:true}
-].filter(s=>(s.key!=="savings"||HAS_SAVINGS)&&(s.key!=="debt"||HAS_CARDS));
+  {key:"savings",label:"Savings",color:"#3c6c8a",balance:true},
+  {key:"ownerpay",label:"Owner's Pay",color:"#8a6fb0"}
+].filter(s=>(s.key!=="savings"||HAS_SAVINGS)&&(s.key!=="debt"||HAS_CARDS)&&(s.key!=="ownerpay"||HAS_OWNER_PAY));
 const MOM_DEFAULT=HAS_SAVINGS?"savings":"net";
 let momKey=lsGet(LS.mom,MOM_DEFAULT);if(!MOM.some(s=>s.key===momKey))momKey=MOM_DEFAULT;
 // The unfinished month shows on this chart (gray and dashed) unless "Show <month>" is unticked.
@@ -661,7 +666,7 @@ function momData(key){
     const idx=BAL.months.map((m,i)=>i).filter(i=>keep(BAL.months[i]));
     return {months:idx.map(i=>BAL.months[i]),values:idx.map(i=>vals[i])};
   }
-  const f=key==="income"?realIncome:key==="spending"?spend:(m=>realIncome(m)-spend(m));
+  const f=key==="income"?realIncome:key==="spending"?spend:key==="ownerpay"?ownerPay:(m=>realIncome(m)-spend(m));
   const ms=MONTHS.filter(keep);
   return {months:ms,values:ms.map(f)};
 }
