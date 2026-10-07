@@ -73,9 +73,19 @@ Then ask if they're ready to go ahead.
 **Only if they say they don't want it** (no bank connection, no GitHub, no cloud, no Era cost): offer
 the **CSV-only** version (`--option csv`, `references/option-csv.md`). Nothing connects to their bank;
 each update they download a CSV from each account and drop it in. It's the most private and the most
-manual, and has no automatic morning updates. If they want Era but specifically refuse GitHub, the
-"Era from this computer" version also exists (`--option local`, `references/option-local.md`): bring it
-up only then.
+manual, and has no automatic morning updates.
+
+**If they hesitate about GitHub or the cloud, make the case for it first; don't switch on the first
+"hmm".** In plain words: the cloud version runs every morning even when their computer is off or asleep,
+sends the phone notification with the link, and needs nothing from them day to day. Running from their
+computer only works while it's on, awake and the Claude app is open, so updates get missed. GitHub is
+free and the repo is private (only they can see it), and you do the GitHub steps for them; they only
+sign in. Answer their actual worry (privacy, another account, "I don't code") and ask again.
+
+**Only if they still insist on running it from their computer:** set up "Era from this computer"
+(`--option local`, `references/option-local.md`). That's when you explain its limits and the Claude
+app's **keep awake** setting (option-local.md), and remind them they can move to the cloud version any
+time ("set up the automatic version"); everything carries over.
 
 ## 3. Their preferences
 Ask, in one short message (or AskUserQuestion where it fits):
@@ -138,8 +148,8 @@ them through the tabs. Every setup ends with them **pinning the dashboard** in t
 ## 8. Keep it updated
 - Fully automatic: `references/option-cloud.md` (GitHub, the daily routine, the first test run, the phone
   notification).
-- "Era from this computer": `references/option-local.md` (how /update-finances-v2 works; offer the daily
-  task on this computer, and the desktop app's keep-awake setting).
+- "Era from this computer" (only if they insisted in step 2): `references/option-local.md` (how
+  /update-finances-v2 works; the daily task on this computer, and the desktop app's keep-awake setting).
 - CSV-only: `references/option-csv.md`, "Next updates" (what to download each time).
 
 ## 9. Leave notes for future chats
