@@ -5,7 +5,7 @@ GitHub repo, pulls the last 21 days from Era, rebuilds, commits, republishes the
 phone notification. Their computer can be off. Routines need a Claude Pro, Max, Team or Enterprise plan
 and use the plan's normal usage (a run takes about a minute); no API credits.
 
-Do this after the first publish works (SKILL.md step 7), so the routine has a dashboard to update.
+Do this after the first publish works (SKILL.md step 8), so the routine has a dashboard to update.
 
 ## A. GitHub account and the folder as a private repo
 1. **GitHub account**: if they don't have one, open https://github.com/signup in their own browser; they

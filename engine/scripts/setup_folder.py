@@ -33,7 +33,12 @@ csv/
 
 def config_for(a):
     cats = [c for c in CATEGORIES if c != "Tithe" or a.tithe > 0 or a.tithe_category]
-    title = a.title or ("%s's Finances" % a.name if a.name else "Personal Finances")
+    if a.business:
+        # A business dashboard tracks what the owner pays themself (its own Overview card), not as spending.
+        cats.insert(cats.index("Card Payments"), "Owner's Pay")
+        title = a.title or ("%s Finances" % a.name if a.name else "Business Finances")
+    else:
+        title = a.title or ("%s's Finances" % a.name if a.name else "Personal Finances")
     return {
         "_how": "Settings for scripts/sync.py and the dashboard. Claude edits this for you; re-run sync after changes.",
         "plugin_version": VERSION,
@@ -41,6 +46,7 @@ def config_for(a):
         "dashboard_title": title,
         "backup_file": "%s Finance Dashboard.html" % a.name if a.name else "Finance Dashboard.html",
         "setup_option": a.option,
+        "dashboard_kind": "business" if a.business else "personal",
         "artifact_url": "",
         "verses": not a.no_verses,
         "_goals": "Percent of each month's real income to set aside. 0 = off. Tax comes off the top, giving after tax, savings after both.",
@@ -53,7 +59,7 @@ def config_for(a):
         "categories": cats,
         "_need_defaults": "Starting Need rating by category (1 = want, 2 = could skip, 3 = need). Shown lighter until confirmed.",
         "need_defaults": {k: v for k, v in NEED_DEFAULTS.items() if k in cats},
-        "non_spend": ["Income", "Card Payments", "Transfers", "Reimbursed", "Gift"],
+        "non_spend": ["Income", "Card Payments", "Transfers", "Reimbursed", "Gift"] + (["Owner's Pay"] if a.business else []),
         "hidden": ["Reimbursed"],
     }
 
@@ -86,6 +92,7 @@ def main():
     ap.add_argument("--savings", type=float, default=0)
     ap.add_argument("--tithe-category", action="store_true", help="keep a Tithe category even with no tithe goal")
     ap.add_argument("--no-verses", action="store_true")
+    ap.add_argument("--business", action="store_true", help="business dashboard: adds an Owner's Pay category; --name is the business name")
     a = ap.parse_args()
     dest = os.path.abspath(a.dest)
     cfg_path = os.path.join(dest, "data", "config.json")

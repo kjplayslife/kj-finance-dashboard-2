@@ -35,7 +35,7 @@ transactions through an MCP connector. Claude never sees bank logins.
 2. Connectors added on claude.ai show up in Claude Code in a **new session**. If you can't find Era
    tools (ToolSearch "Era" or "list_transactions"), ask them to start a new Code session in this same
    folder and say "/finance-setup-v2" again; the folder remembers where you were (data/config.json exists,
-   so continue at step 5).
+   so continue at step 6).
 
 ## C. Rules for using Era (follow these every time)
 - Use only `accounts__list_financial_accounts` and `transactions__list_transactions` (the tool names are
@@ -69,7 +69,7 @@ transactions through an MCP connector. Claude never sees bank logins.
 ## E. What to expect, and tell them
 - **Era only has recent transactions plus everything from now on** (often about 2-3 months back; it's
   set by the bank and the link service, not Era's plan). The dashboard keeps everything it ever pulls.
-  **For the rest of the year, the one-time year-to-date CSVs** (SKILL.md step 5; option-csv.md, "The
+  **For the rest of the year, the one-time year-to-date CSVs** (SKILL.md step 6; option-csv.md, "The
   rest of the year"). sync.py only uses CSV rows from before Era's first row for each account, so
   nothing doubles.
 - **Amount signs**: negative = money out. On a card, negative = a charge, positive = payment or refund.

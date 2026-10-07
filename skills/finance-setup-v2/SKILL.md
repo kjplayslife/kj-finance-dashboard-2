@@ -19,14 +19,14 @@ signing in to their bank, choices).
   `option-local.md` (Era from this computer, only if asked),
   `publish-and-verify.md` (every option).
 
-## Ground rules (tell them once, briefly, at the start)
-- **Older KJ finance plugins off first.** If they ever installed an earlier KJ finance plugin (anything
-  before 2.0, such as the first KJ Finance Dashboard), ask them to turn it off before going further
-  (Customize > Plugins, switch it off or uninstall), then start a new Code session in this folder and say
-  "/finance-setup-v2" again. Otherwise Claude can pick up one of the old skills mid-setup and mix the two
-  versions. Every 2.0 skill ends in "-v2" (finance-setup-v2, update-finances-v2, finance-customize-v2); if
-  your skill list shows other finance or dashboard skills without "-v2" from another plugin, that's an
-  old one: name it for them.
+## How to run this setup (read first)
+- **Simple and step by step.** Ask **one or two questions at a time**, with the AskUserQuestion tool
+  (recommended option first, marked "(Recommended)"). Never send a wall of questions or a long plan.
+  Keep each message to a few short lines, then wait for their answer.
+- **Do the technical work yourself**, quietly. Only bring them in for choices, sign-ups and signing in.
+  Don't narrate commands, file names or checks unless something needs their attention.
+
+## Ground rules (follow throughout; mention only when they come up)
 - **Sign-ups and bank logins happen in their own browser** (Chrome, Safari, whatever they normally use),
   not the Claude app's built-in browser. That's where their saved passwords are, and when Era connects
   a bank it hands off to the bank's site or app, which works best there. Open each link in their
@@ -45,37 +45,66 @@ signing in to their bank, choices).
   `winget install GitHub.cli`; Git is already there because Claude Code on Windows needs it); paths
   are like `C:\Users\<name>\Documents\Finances`. The cloud routine itself runs the same for everyone.
 
-## 1. Folder
-Check where you are (`pwd`, `ls -A`). The dashboard lives in its own folder. If the current folder isn't
-empty and isn't meant for this, suggest a new one such as `~/Documents/Finances` and ask them to open a
-new Claude Code session in it (Code tab, choose that folder), then say "/finance-setup-v2" again. If
-`data/config.json` already exists, this folder is already set up: offer `finance-customize-v2` or
-`update-finances-v2` instead.
+## 1. Quiet checks (say nothing unless something needs them)
+1. **Folder**: `pwd`, `ls -A`. The dashboard lives in its own folder. If this folder isn't empty and isn't
+   meant for this, suggest a new one such as `~/Documents/Finances` and ask them to open a new Code
+   session in it and type "/finance-setup-v2" again. If `data/config.json` already exists: with an
+   `artifact_url` in it, this folder is already set up (offer `finance-customize-v2` or
+   `update-finances-v2` instead); without one, setup was interrupted (often the new session after adding
+   Era): read FINANCE.md if it exists, and pick up where it left off (usually step 6) without asking the
+   step 2-5 questions again.
+2. **Other finance plugins**: look for any other finance, budget or money plugin that's installed **and
+   turned on**: check your own skill list for finance/budget/dashboard skills that don't come from
+   `kj-finance-dashboard-2`, and read `~/.claude/settings.json` (`enabledPlugins`) and
+   `~/.claude/plugins/installed_plugins.json` if they exist. **If there are none, don't mention it.** If
+   there are, name them in one line and suggest turning them off first (Customize > Plugins, or type
+   `/plugin`), since Claude could pick up one of their skills mid-setup; then start a new Code session in
+   this folder and type "/finance-setup-v2" again. If they'd rather keep going, continue.
+3. **Python**: `python3 --version` (3.9+). If missing on a Mac, running `python3` once offers to install
+   the command line tools; ask them to accept, then continue. On Windows: `py -3 --version`; if missing,
+   `winget install Python.Python.3.12`, then open a new session.
 
-Check Python: `python3 --version` (3.9+). If missing on a Mac, running `python3` once offers to install
-the command line tools; accept, then continue. On Windows: `py -3 --version`; if missing,
-`winget install Python.Python.3.12`, then open a new session.
+Then greet them in one or two lines (what they're about to get, roughly 30-45 minutes, you'll go one
+step at a time) and go straight to the first question.
 
-Check their Claude plan once: the daily cloud routine needs **Claude Pro or higher** (Max, Team,
-Enterprise). If they're on the free plan, say so now: they can upgrade at claude.ai/settings, or use the
-CSV-only setup (step 2).
+## 2. Personal, business or both
+AskUserQuestion: **"Is this dashboard for your personal money, a business, or both?"**
+Options: Personal / Business / Both (one dashboard for each).
+- **Both**: in the same call or right after, ask **"Which one should we set up first?"** (Personal
+  (Recommended) / Business). Tell them the other one comes right after this one finishes, in its own
+  folder, and goes much faster because Era, GitHub and the phone app are already done. Note the choice
+  in FINANCE.md so you remember to offer it at the end.
+- Then one plain question for the title: personal: their first name ("Sam's Finances"); business: the
+  business name ("Acme Studio Finances").
 
-## 2. The plan: fully automatic
+## 3. Banks and cards (for the dashboard you're setting up now)
+One AskUserQuestion call with two questions:
+1. **"Which banks do you use for <your personal money / the business>?"** (multiSelect): offer the
+   four most common (Chase, Bank of America, Wells Fargo, Capital One); they pick "Other" to type the
+   rest (Ally, a credit union, ...). Include the banks behind their credit cards too.
+2. **"How many credit cards do you use for <it>?"** Options: None / 1 / 2-3 / 4 or more.
+Keep the answers: they're your checklist for linking in Era, for the year-to-date CSVs, and for the Era
+cost (each checking, savings and card account counts as one).
+
+## 4. How it will work (fully automatic)
 Everyone sets up the **fully automatic** version (`--option cloud`); that's what makes this dashboard
-worth having. Don't offer a menu. Tell them in a few lines what they're about to set up and why:
-- **Era** reads their bank accounts (read-only) so nothing has to be downloaded by hand.
+worth having. In a few short lines (no menu):
+- **Era** reads their bank accounts (read-only), so nothing has to be downloaded by hand.
 - A **Claude routine in the cloud** updates the dashboard every morning, even with their computer off,
   and sends a phone notification with a link to it.
-- A free **GitHub** account holds their finance folder privately so the routine can reach it.
-- What it costs: Claude Pro or higher (step 1), and Era is free for up to 2 linked accounts, **paid for
-  more than 2** (each checking, savings and card counts as one; about $9/month, confirm on era.app).
-  Ask how many accounts they'd link; with 3 or more, say the Era cost plainly.
-Then ask if they're ready to go ahead.
+- A free **GitHub** account keeps their finance folder private and reachable by the routine; you do the
+  GitHub steps, they just sign in.
+- Cost: **Claude Pro or higher** (Max, Team, Enterprise). Era is free for up to 2 linked accounts and
+  **paid for more than 2** (about $9/month; confirm on era.app). From their answers in step 3, say how
+  many accounts that is and whether it means the paid Era plan.
+Then AskUserQuestion: **"Ready to set it up this way?"** Options: "Yes, let's go (Recommended)" /
+"I'd rather not connect my bank". If they're on the free Claude plan, they can upgrade at
+claude.ai/settings first.
 
-**Only if they say they don't want it** (no bank connection, no GitHub, no cloud, no Era cost): offer
-the **CSV-only** version (`--option csv`, `references/option-csv.md`). Nothing connects to their bank;
-each update they download a CSV from each account and drop it in. It's the most private and the most
-manual, and has no automatic morning updates.
+**Only if they don't want it** (no bank connection, no GitHub, no cloud, no Era cost): offer the
+**CSV-only** version (`--option csv`, `references/option-csv.md`). Nothing connects to their bank; each
+update they download a CSV from each account and drop it in. The most private and the most manual, with
+no automatic morning updates.
 
 **If they hesitate about GitHub or the cloud, make the case for it first; don't switch on the first
 "hmm".** In plain words: the cloud version runs every morning even when their computer is off or asleep,
@@ -89,30 +118,43 @@ sign in. Answer their actual worry (privacy, another account, "I don't code") an
 app's **keep awake** setting (option-local.md), and remind them they can move to the cloud version any
 time ("set up the automatic version"); everything carries over.
 
-## 3. Their preferences
-Ask, in one short message (or AskUserQuestion where it fits):
-- **Name** for the title ("Sam's Finances"); default "<first name>'s Finances".
-- **Monthly set-asides** (the Overview's "Transfers to make" card). Ask which they want, then the
-  percent for each:
-  - **Taxes**: for business owners, freelancers, creators (anyone without taxes withheld). Common: 25%.
-    Most people with a regular paycheck skip this.
-  - **Tithe / giving**: common 10%. Figured after taxes.
-  - **Savings**: common 10%. Figured after taxes and giving.
-  Any they skip are off (0) and their tile is hidden. If they choose tithe, a Tithe category is added.
-- **Bible verses**: each tab ends with a short Bible verse. They're on; tell them they can turn them off
-  any time ("finance-customize-v2"). Don't ask them to opt in.
+## 5. Monthly set-asides
+First explain in two lines: the Overview shows what to move each month from last month's income, worked
+out **in order: taxes first (off the top), then tithe from what's left, then savings from what's left
+after that.** Then:
+1. AskUserQuestion (multiSelect): **"What do you want to set aside each month?"**
+   - **Taxes**: for business owners, freelancers and creators (anyone without taxes taken out of their
+     pay). Recommend it for a business dashboard; most people with a regular paycheck skip it.
+   - **Tithe / giving**
+   - **Savings**
+   - (Picking none is fine: the card is hidden.)
+2. Their percentages, at most two questions per AskUserQuestion call (if they picked all three, ask
+   savings in a second call), recommended option first:
+   - Taxes: **25% (Recommended)** / 30% / 20%. (Business: 25-30%.)
+   - Tithe / giving: **10% (Recommended)** / 15% / 5%.
+   - Savings: **10% (Recommended)** / 15% / 20%.
+   They can type any other number under "Other". Anything they didn't pick is 0 (off). A tithe adds a
+   Tithe category.
+**Don't ask about the Bible verses here**: they're on by default and come up at the end (step 11).
 
-## 4. Create the folder
+## 5b. Create the folder
 ```bash
-python3 "$E/scripts/setup_folder.py" --dest . --name "<Name>" --option <cloud|local|csv> \
-  --tax <n> --tithe <n> --savings <n>
+python3 "$E/scripts/setup_folder.py" --dest . --name "<first name or business name>" --option <cloud|local|csv> \
+  --tax <n> --tithe <n> --savings <n> [--business]
 ```
-(`--title "<custom title>"` if they gave one.) It copies scripts/, dashboard/template.html,
-data/category-rules.json, and writes data/config.json and data/overrides.json.
+`--business` for a business dashboard (adds an "Owner's Pay" category, counted apart from spending, with
+its own Overview card; the title becomes "<Business> Finances"). It copies scripts/,
+dashboard/template.html, data/category-rules.json, and writes data/config.json and data/overrides.json.
+**Setting up both?** Each dashboard is its own folder, Era login shared: in each folder set
+`era.only_accounts` to that dashboard's own account keys (see `references/era.md`), so business accounts
+never show up on the personal dashboard or the other way round.
+Right away, start `FINANCE.md` with their answers so far (personal or business, "Both" and which comes
+next, banks, number of cards, set-asides); if the session restarts, step 1 picks up from it. Step 10
+fills in the rest.
 
-## 5. Connect the data
+## 6. Connect the data
 - Fully automatic (and "Era from this computer"): follow `references/era.md` (Era account, link banks
-  through MX, connect Era to Claude, first full pull), then `references/option-cloud.md` in step 8.
+  through MX, connect Era to Claude, first full pull), then `references/option-cloud.md` in step 9.
   **Before the first pull, explain history** in a few plain lines: **Era can only pull about the last
   1 to 3 months** of transactions, plus everything from now on. To have **all of this year** in the
   dashboard, they download a **year-to-date CSV** (Jan 1 to today) from **every** bank account and card
@@ -127,7 +169,7 @@ data/category-rules.json, and writes data/config.json and data/overrides.json.
 Finish this step with `python3 scripts/sync.py` succeeding. Show them the month totals it prints and ask
 if they look about right.
 
-## 6. Make it theirs
+## 7. Make it theirs
 1. **Account names**: Era names accounts like "CREDIT CARD-1234". Offer short names ("Chase Card") and
    save them under `era.account_labels` in data/config.json (key = account_group_key from the accounts
    list). CSV accounts already have the names they gave.
@@ -141,20 +183,20 @@ if they look about right.
    data/config.json budgets for their changes).
 4. `python3 scripts/sync.py` again.
 
-## 7. Publish and verify
+## 8. Publish and verify
 Follow `references/publish-and-verify.md`: publish the private artifact with its database, save the URL
 in data/config.json, open the local backup in the browser pane, check desktop and phone widths, and walk
 them through the tabs. Every setup ends with them **pinning the dashboard** in the claude.ai sidebar and
 **installing the Claude phone app** (signed in, notifications on), so it's one tap away on their phone.
 
-## 8. Keep it updated
+## 9. Keep it updated
 - Fully automatic: `references/option-cloud.md` (GitHub, the daily routine, the first test run, the phone
   notification).
-- "Era from this computer" (only if they insisted in step 2): `references/option-local.md` (how
+- "Era from this computer" (only if they insisted in step 4): `references/option-local.md` (how
   /update-finances-v2 works; the daily task on this computer, and the desktop app's keep-awake setting).
 - CSV-only: `references/option-csv.md`, "Next updates" (what to download each time).
 
-## 9. Leave notes for future chats
+## 10. Leave notes for future chats
 Write `FINANCE.md` in their folder (short): which option, the artifact URL, accounts and where each comes
 from, their goals, how to update ("/update-finances-v2"), how to change things ("/finance-customize-v2"), and
 anything decided during setup (rules added, accounts excluded, routine id and time).
@@ -162,7 +204,13 @@ Write a two-line `CLAUDE.md`: "This folder is a KJ Finance Dashboard 2.0 finance
 first; use the kj-finance-dashboard-2 skills (update-finances-v2, finance-customize-v2)."
 For the fully automatic setup, commit and push these (see option-cloud.md).
 
-## 10. Wrap up
+## 11. Wrap up
 Tell them, in a few lines: where the dashboard is (artifact link; local backup file name), how it updates
 for their option, that ratings and category changes they make in the dashboard save to the dashboard,
 and the three commands: "/update-finances-v2", "/finance-customize-v2", and asking you anything about their money.
+Then, in one line: each tab ends with a short Bible verse; if they'd rather not have them, they can say
+"turn off the verses" any time.
+**If they chose "Both" in step 2**, offer to set up the other dashboard now: they make a new folder
+(e.g. `~/Documents/Business Finances`), open a new Code session in it and type "/finance-setup-v2". Era,
+GitHub and the phone app are already done, so it's mostly linking that dashboard's accounts, the
+year-to-date CSVs, and its own routine.

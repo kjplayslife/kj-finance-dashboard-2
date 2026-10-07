@@ -1,6 +1,6 @@
 # Option 2: Era, updated from this computer (only if they insist)
 
-Use this only when they've heard why the cloud version is better (SKILL.md step 2) and still want
+Use this only when they've heard why the cloud version is better (SKILL.md step 4) and still want
 everything on their own computer. Be clear about the trade-off: updates only happen while this computer
 is on, awake and the Claude app is open.
 

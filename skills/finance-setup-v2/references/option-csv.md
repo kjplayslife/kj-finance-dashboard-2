@@ -36,7 +36,7 @@ Nothing connects to their bank. They download a CSV export from each account; Cl
                        "Amex Gold": {"balance": 512.30, "asOf": "2026-10-01"}}
    ```
    They can skip this; the Accounts tab then says "Not set" for that account and net worth leaves it out.
-5. `python3 scripts/sync.py`, then back to SKILL.md step 6.
+5. `python3 scripts/sync.py`, then back to SKILL.md step 7.
 
 Importing the same period again is safe: rows get stable ids from account + date + amount + description,
 so overlaps don't double count and their ratings stay attached.
