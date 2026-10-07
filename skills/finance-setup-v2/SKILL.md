@@ -45,6 +45,23 @@ signing in to their bank, choices).
   `winget install GitHub.cli`; Git is already there because Claude Code on Windows needs it); paths
   are like `C:\Users\<name>\Documents\Finances`. The cloud routine itself runs the same for everyone.
 
+## 0. Era connected? (before anything else)
+Check whether the **Era Context** connector is connected and on: ToolSearch for
+"list_financial_accounts" (or "Era"). If the Era tools are there, say nothing and go to step 1.
+If not, open with a one-line hello (what they're about to get, about 30-45 minutes, one step at a time),
+then this comes first, in two short steps (details in `references/era.md`, A.1 and B):
+1. **An Era account** (skip if they have one): open KJ's referral link https://era.app/#via=kj in their
+   own browser, with the one-line disclosure from era.md A.1. They sign up. Mention now that Era is
+   free for up to 2 linked accounts and **$9 a month for more than 2**; they don't need to link any banks
+   yet (that comes later, step 6).
+2. **Connect Era to Claude**: open https://claude.ai/settings/connectors in their browser; they add
+   **Era Context**, approve it, and make sure it's turned on.
+Then check again with ToolSearch. If you still can't see the Era tools after they say it's connected,
+ask them to start a **fresh chat**: a new Code session in this same folder, and type "/finance-setup-v2"
+again (nothing is lost; setup hasn't created anything yet).
+(If they say up front they don't want a bank connection at all, skip this step: that's the CSV-only
+setup, step 4.)
+
 ## 1. Quiet checks (say nothing unless something needs them)
 1. **Folder**: `pwd`, `ls -A`. The dashboard lives in its own folder. If this folder isn't empty and isn't
    meant for this, suggest a new one such as `~/Documents/Finances` and ask them to open a new Code
@@ -64,8 +81,8 @@ signing in to their bank, choices).
    the command line tools; ask them to accept, then continue. On Windows: `py -3 --version`; if missing,
    `winget install Python.Python.3.12`, then open a new session.
 
-Then greet them in one or two lines (what they're about to get, roughly 30-45 minutes, you'll go one
-step at a time) and go straight to the first question.
+Then (unless you already said hello in step 0) greet them in one or two lines (what they're about to
+get, roughly 30-45 minutes, you'll go one step at a time) and go straight to the first question.
 
 ## 2. Personal, business or both
 AskUserQuestion: **"Is this dashboard for your personal money, a business, or both?"**
@@ -84,7 +101,9 @@ One AskUserQuestion call with two questions:
    rest (Ally, a credit union, ...). Include the banks behind their credit cards too.
 2. **"How many credit cards do you use for <it>?"** Options: None / 1 / 2-3 / 4 or more.
 Keep the answers: they're your checklist for linking in Era, for the year-to-date CSVs, and for the Era
-cost (each checking, savings and card account counts as one).
+cost. Right after they answer, tell them plainly how many accounts that comes to (each checking, savings
+and credit card counts as one) and that **linking more than 2 accounts in Era costs $9 a month** (Era's
+paid plan; 2 or fewer is free; confirm the price on era.app).
 
 ## 4. How it will work (fully automatic)
 Everyone sets up the **fully automatic** version (`--option cloud`); that's what makes this dashboard
@@ -153,8 +172,11 @@ next, banks, number of cards, set-asides); if the session restarts, step 1 picks
 fills in the rest.
 
 ## 6. Connect the data
-- Fully automatic (and "Era from this computer"): follow `references/era.md` (Era account, link banks
-  through MX, connect Era to Claude, first full pull), then `references/option-cloud.md` in step 9.
+- Fully automatic (and "Era from this computer"): Era is already connected (step 0). Now they link their
+  banks and cards in Era (`references/era.md` A.2): **try MX first, and use Stripe for any bank where MX
+  doesn't work**, and expect **a few minutes** before linked accounts show up. Go down their bank list
+  from step 3 one at a time. Then the first full pull (era.md D), and `references/option-cloud.md` in
+  step 9.
   **Before the first pull, explain history** in a few plain lines: **Era can only pull about the last
   1 to 3 months** of transactions, plus everything from now on. To have **all of this year** in the
   dashboard, they download a **year-to-date CSV** (Jan 1 to today) from **every** bank account and card
