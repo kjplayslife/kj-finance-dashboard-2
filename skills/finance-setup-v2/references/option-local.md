@@ -10,7 +10,10 @@ About a minute. Era refreshes from banks about once a day, so once a day is plen
 ## Offer a daily task (after the first publish works)
 Ask if they want it to run by itself each morning, and what time. Explain: it runs only while the
 computer is on and the Claude desktop app is open; if the app is closed at that time, it runs the next
-time they open it. If they say yes, create it with the scheduled-tasks tool
+time they open it. Suggest the desktop app's **keep awake** setting (in the Claude app's settings; if
+the `ccd_settings` tools are available, offer to turn it on for them) so the computer doesn't sleep
+through the update, and keeping a laptop plugged in overnight. If they say yes, create it with the
+scheduled-tasks tool
 (`mcp__scheduled-tasks__create_scheduled_task`; ToolSearch "scheduled task" if it isn't loaded):
 - `taskId`: `finance-daily-update`, `title`: "Finance dashboard update"
 - `cronExpression`: their time in LOCAL time, e.g. `0 8 * * *`

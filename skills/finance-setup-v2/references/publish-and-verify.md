@@ -13,8 +13,13 @@ sync.py builds two files every time:
    `capabilities` = `{"db": {"rules": [{"path": "", "read": "admin", "write": "admin"}]}}`
    (only the owner can read or write the saved edits).
 3. Save the URL it returns as `artifact_url` in data/config.json, and in FINANCE.md.
-4. It's private: only they can open it. They can pin it in their claude.ai sidebar and open it from the
-   Claude phone app.
+4. It's private: only they can open it.
+5. **Pin it and get it on their phone** (every setup, not just the automatic one):
+   - Pin: on the artifact page in claude.ai (or the Artifacts list), choose **Pin** so it sits in their
+     sidebar. If the Artifact tool's `pin` action is available, offer to pin it for them.
+   - Phone: install the **Claude** app (App Store / Google Play), sign in with the same account, and
+     allow notifications. The dashboard opens from the pinned list there, and the morning notification
+     links to it.
 
 ## Every later publish
 - If a cloud routine also publishes it (option 1), **read it first** (`action: "read"`, the `url`): a
