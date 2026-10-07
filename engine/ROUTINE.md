@@ -61,4 +61,6 @@ One or two sentences. No account numbers.
 ## 7. Report
 Finish with a short summary: how many transactions the pull returned, how many are new, this month's
 income and spending from the `sync.py` output, any rows `sync.py` says no rule matched, and whether
-the artifact republished.
+the artifact republished. **Always end with the dashboard link on its own last line** (even if a step
+failed), so it's one tap away when they open the notification on their phone:
+`Open your dashboard: <artifact_url from data/config.json>`

@@ -58,7 +58,8 @@ pane and create it there with them. Settings:
   ```
 Then **run it once now** (the routine's "Run now", or RemoteTrigger `run`) and check it:
 RemoteTrigger `list_runs` for the trigger id, then `get_run_log` for the newest session. A good run shows
-the Era pull, sync output, a push to `claude/data`, the artifact republished, and the notification.
+the Era pull, sync output, a push to `claude/data`, the artifact republished, the notification, and
+the run's last line linking the dashboard ("Open your dashboard: ...").
 Pull the result locally: `git pull -q origin claude/data`.
 
 ## D. Phone notification

@@ -47,4 +47,5 @@ push to `claude/data` so the routine uses the change. After any change: `python3
   Transfers, `"when": "in"`) rather than one-off overrides, so future rows are right too.
 - **Update to the newest plugin version**: `python3 "${CLAUDE_PLUGIN_ROOT}/engine/scripts/setup_folder.py"
   --dest . --refresh` (replaces scripts/ and dashboard/template.html only; their config, rules, data and
-  edits stay), then sync, publish, check, and (cloud) commit + push.
+  edits stay). Cloud setups also take the new routine steps: `cp "${CLAUDE_PLUGIN_ROOT}/engine/ROUTINE.md" .`
+  (the routine reads this file every morning). Then sync, publish, check, and (cloud) commit + push.

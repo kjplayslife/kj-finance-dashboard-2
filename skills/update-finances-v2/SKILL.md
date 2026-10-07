@@ -50,5 +50,6 @@ sync.py. If the folder is a git repo, commit the data.
 
 ## Report
 Short: the `NOTIFY:` line from sync.py (new transactions, month so far), anything sync.py says no rule
-matched (offer to add rules: top of data/category-rules.json, then sync and publish again), and the
-link. Unattended runs: send the NOTIFY line with PushNotification if available.
+matched (offer to add rules: top of data/category-rules.json, then sync and publish again). **Always
+end with the dashboard link on its own last line** (`Open your dashboard: <artifact_url>`), so it's one
+tap away on a phone. Unattended runs: send the NOTIFY line with PushNotification if available.

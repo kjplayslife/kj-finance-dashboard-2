@@ -29,7 +29,8 @@ time they open it. If they say yes, create it with the scheduled-tasks tool
      it (url set, no capabilities, no icon).
   5. If the PushNotification tool is available, send the NOTIFY line sync.py printed (without
      "NOTIFY: "), or "Finance update failed at step <n>: <reason>". No account numbers.
-  6. Finish with a two-line summary. Don't change the dashboard's code, rules or config.
+  6. Finish with a two-line summary, then the dashboard link on its own last line (even if a step
+     failed): "Open your dashboard: <ARTIFACT URL>". Don't change the dashboard's code, rules or config.
   ```
 - Then run it once now (`mcp__scheduled-tasks__run_scheduled_task`) and check it finished
   (`list_task_runs`). If it asks for tool permissions on the first run, they approve them once.
