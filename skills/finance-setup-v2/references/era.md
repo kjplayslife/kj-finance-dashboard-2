@@ -4,7 +4,11 @@ Era Context (era.app) links to their banks and gives Claude read-only access to 
 transactions through an MCP connector. Claude never sees bank logins.
 
 ## A. Era account (they do this, in the browser pane)
-1. Open https://era.app in the browser pane. They sign up and pick a plan. **Up to 2 linked accounts
+1. Open **https://era.app/#via=kj** in the browser pane (KJ's referral link). Before they sign up, tell them once,
+   plainly: "This is KJ's referral link. It costs you exactly the same; if you choose a paid Era plan,
+   KJ gets a share from Era. If this plugin has been useful, using it is a way to support KJ. If you'd
+   rather not, https://era.app works the same." Use whichever they choose; never push. If they already
+   have an Era account, skip this. They sign up and pick a plan. **Up to 2 linked accounts
    is free; more than 2 (every checking, savings and card counts) needs the $9/month plan.** Remind them
    before they link a third account, and have them confirm the current price on era.app.
 2. In Era, they link each bank and card ("Connect account"). They search for their bank and sign in

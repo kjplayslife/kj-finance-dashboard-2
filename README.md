@@ -16,7 +16,7 @@ in your Claude account (opens on your phone and computer) with a backup copy on 
   sign-in page.
 
 ## How it stays updated
-**Fully automatic.** [Era Context](https://era.app) reads your bank accounts (read-only), and a Claude
+**Fully automatic.** [Era Context](https://era.app/#via=kj) reads your bank accounts (read-only), and a Claude
 routine in the cloud updates your dashboard every morning, even when your computer is off. You get a
 phone notification with a link straight to it. Setup walks you through all of it.
 
@@ -31,9 +31,11 @@ want to update. Fully private, fully manual.
   you'll do the sign-ups, so Claude can help if you get stuck.
 - **The Claude phone app** (iPhone or Android), signed in, with notifications on: that's where the
   morning update and your dashboard show up.
-- **An Era account** ([era.app](https://era.app)). Free for up to 2 linked accounts; more than 2 (each
+- **An Era account** ([sign up here](https://era.app/#via=kj)). Free for up to 2 linked accounts; more than 2 (each
   checking, savings and credit card counts) is a paid plan, about $9/month (check era.app for current
-  pricing).
+  pricing). *That's KJ's referral link: it costs you exactly the same, and if you pick a paid plan, KJ
+  gets a share of it from Era. If this plugin helped you, using it is an easy way to say thanks. Plain
+  [era.app](https://era.app) works just as well.*
 - **A free GitHub account** ([github.com](https://github.com)). It privately stores your finance folder
   so the morning update can reach it.
 - **Python 3.9 or newer.** A Mac offers to install it the first time it's needed; on Windows, Claude
