@@ -14,7 +14,8 @@ About a minute. Era refreshes from banks about once a day, so once a day is plen
 ## Offer a daily task (after the first publish works)
 Ask if they want it to run by itself each morning, and what time. Explain: it runs only while the
 computer is on and the Claude desktop app is open; if the app is closed at that time, it runs the next
-time they open it. Suggest the desktop app's **keep awake** setting (in the Claude app's settings; if
+time they open it. Suggest the desktop app's keep-awake switches (Settings > Claude Code: **Keep computer awake while
+Claude works** and **Keep this computer awake for Remote Control**; if
 the `ccd_settings` tools are available, offer to turn it on for them) so the computer doesn't sleep
 through the update, and keeping a laptop plugged in overnight. If they say yes, create it with the
 scheduled-tasks tool

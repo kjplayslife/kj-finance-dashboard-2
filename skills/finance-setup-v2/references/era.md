@@ -3,45 +3,49 @@
 Era Context (era.app) links to their banks and gives Claude read-only access to balances and
 transactions through an MCP connector. Claude never sees bank logins.
 
-## A. Era account (they do this, in their own browser; SKILL.md step 0, before anything else)
-1. Open **https://era.app/#via=kj** in their own browser (`open "<url>"` on a Mac; KJ's referral link). Before they sign up, tell them once,
+The step-by-step walk-through (account, plan, linking, connector, check) is the **era-setup** skill
+(`${CLAUDE_PLUGIN_ROOT}/skills/era-setup/SKILL.md`); run it rather than repeating it. These are the facts
+it's built on, from KJ's tested course (Oct 2026). Stuck: `where-people-get-stuck.md`.
+
+## A. Era account and banks (they do this, in their own browser)
+1. **Sign up**: **https://era.app/#via=kj** (KJ's referral link). Before they sign up, tell them once,
    plainly: "This is KJ's referral link. It costs you exactly the same; if you choose a paid Era plan,
    KJ gets a share from Era. If this plugin has been useful, using it is a way to support KJ. If you'd
-   rather not, https://era.app works the same." Use whichever they choose; never push. If they already
-   have an Era account, skip this. They sign up and pick a plan. **Up to 2 linked accounts
-   is free; more than 2 (every checking, savings and card counts) needs the $9/month plan.** Remind them
-   before they link a third account, and have them confirm the current price on era.app.
-2. In Era, they link each bank and card ("Connect account"). They search for their bank and sign in
-   through the bank's secure window themselves. Doing this in their normal browser means their saved
-   bank passwords fill in; some banks hand off to their phone's bank app to approve, which is expected.
-   - **Try MX first; use Stripe only if MX doesn't work.** When Era offers a choice of connection
-     service, have them pick **MX** for each bank and card: in KJ's use (Oct 2026) Stripe-linked
-     accounts kept sending new transactions but their balances stayed stuck on the day they were linked,
-     while MX links refreshed balances every day. **If MX doesn't work for a bank** (it can't find the
-     bank, the sign-in fails or errors, or it never finishes), have them link that bank through
-     **Stripe** in Era instead; that's fine. The Accounts tab shows each balance's date and turns it
-     orange if it stops updating; they can try MX again later. Neither service reaches back far, so
-     don't promise long history (that's what the year-to-date CSVs are for).
-   - **Accounts can take a few minutes to show up** in Era (and to Claude) after linking. Tell them so
-     before they start, and after they finish: if an account isn't there yet, wait a few minutes and
-     check again (`accounts__list_financial_accounts`) before assuming it failed or linking it again.
-   - Linking sometimes says it worked and then shows nothing; retrying in a fresh window fixed it before.
+   rather not, https://era.app works the same." Use whichever they choose; never push. They click
+   **Get started for free** > **Continue free with Google** (or email).
+2. **Plan**: free for **up to 2 linked accounts** (every checking, savings and card counts). More than 2:
+   the **Organize** plan, about **$9/month**, up to 15 accounts. To upgrade (they do it): account bubble
+   (top right) > **Upgrade** > uncheck **Show small biz** if it's checked > **Monthly** or **Quarterly** >
+   **Start Organize for $1** (or 10% off for life) > checkout through Stripe.
+3. **Link each bank and card**: Era home > white **Connect** button > **Link with MX** > search the bank >
+   they sign in through the bank's window themselves (saved passwords fill in in their own browser; some
+   banks hand off to their phone's bank app, which is expected) > a "connection successful" pop-up shows
+   in the bottom right. Linked accounts are listed under **My Vault**.
+   - **Try MX first; use Stripe only if MX doesn't work** for that bank (can't find it, sign-in fails or
+     never finishes). MX updates better: in KJ's use Stripe-linked accounts kept sending transactions but
+     their balances stayed stuck on the day they were linked. The Accounts tab shows each balance's date
+     and turns it orange if it stops updating; they can try MX again later. Neither service reaches back
+     far (that's what the year-to-date CSVs are for).
+   - **It can take 15 minutes to 1 hour** for a linked bank to sync and show up (in My Vault and to
+     Claude). That's normal. Tell them before they start; they keep linking the rest meanwhile and can
+     carry on with setup. Don't assume it failed or link it again before an hour.
+   - Linking sometimes says it worked and then shows nothing after the hour; retrying in a fresh window
+     fixed it before.
    - **Don't link the same bank twice** (e.g. through both MX and Stripe): every row comes back twice.
      If it happens, add the extra account keys to `era.exclude_accounts` in data/config.json.
    - Some institutions (e.g. Venmo) may not be available. Money paid from a linked checking account to
      them still shows up as a transaction.
 
-## B. Connect Era to Claude (SKILL.md step 0, right after the Era account)
-1. In their own browser open https://claude.ai/settings/connectors (Customize > Connectors). They add
-   **Era Context** (search "Era"; if it isn't listed, "Add custom connector" with the URL
-   `https://context.era.app`) and approve it.
-2. Make sure it's **turned on** (the connector's toggle on that page, and in the Code tab's connector
-   list if it shows one).
-3. Connectors added on claude.ai usually only show up in Claude Code in a **new session**. Check with
-   ToolSearch ("list_financial_accounts" or "Era"). If you still can't find the Era tools after they say
-   it's connected, ask them to start a **fresh Code session in this same folder** (Code tab, new session,
-   same folder) and type "/finance-setup-v2" again; setup starts over at step 0, finds Era this time and
-   carries on.
+## B. Connect Era to Claude
+1. Era home > **Connect an AI agent** > **Claude**. That opens claude.ai/directory/era-context.
+2. **Sign in to add**, signed in to the same Claude account as the desktop app.
+3. Era's "Authorize application" page: **Allow access**.
+4. Check: Claude app > Customize > **Connectors**, search "Era": **✓ Connected**. If not, click it and
+   connect again. (Fallback: claude.ai/settings/connectors > add **Era Context**, or **Add custom
+   connector** with `https://context.era.app`.)
+5. Connectors usually only show up in Claude Code in a **new session**. Check with ToolSearch
+   ("list_financial_accounts"). Not there after they say it's connected: a fresh Code session in the same
+   folder, and type the skill again.
 
 ## C. Rules for using Era (follow these every time)
 - Use only `accounts__list_financial_accounts` and `transactions__list_transactions` (the tool names are

@@ -25,15 +25,15 @@ only** instead: nothing connects to your bank, and you download a file from each
 want to update. Fully private, fully manual.
 
 ## What you need
-- **A paid Claude plan: Pro or higher** (Max, Team or Enterprise also work). The daily cloud update
+- **A paid Claude plan: Pro ($20/month) or higher** (Max, Team or Enterprise also work). The daily cloud update
   needs it.
-- **The Claude desktop app** (Mac or Windows), using the **Code** tab. Sign-ups and bank logins open in
+- **The Claude desktop app** (Mac or Windows; [claude.com/download](https://claude.com/download)), using the **Code** tab. Sign-ups and bank logins open in
   your normal browser (Chrome, Safari...), where your saved passwords are.
 - **The Claude phone app** (iPhone or Android), signed in, with notifications on: that's where the
   morning update and your dashboard show up.
 - **An Era account** ([sign up here](https://era.app/#via=kj)). Free for up to 2 linked accounts; more than 2 (each
-  checking, savings and credit card counts) is a paid plan, about $9/month (check era.app for current
-  pricing). *That's KJ's referral link: it costs you exactly the same, and if you pick a paid plan, KJ
+  checking, savings and credit card counts) needs Era's **Organize** plan, about $9/month for up to 15
+  accounts (check era.app for current pricing). *That's KJ's referral link: it costs you exactly the same, and if you pick a paid plan, KJ
   gets a share of it from Era. If this plugin helped you, using it is an easy way to say thanks. Plain
   [era.app](https://era.app) works just as well.*
 - **A free GitHub account** ([github.com](https://github.com)). It privately stores your finance folder
@@ -49,7 +49,8 @@ Plan on 30 to 45 minutes, most of it sign-ups and signing in to your banks.
   everything from then on. To have **all of this year** in your dashboard, you'll download a
   year-to-date CSV (Jan 1 to today) from every bank account and card **once**, during setup. Claude
   shows you where on each bank's site and adds them; after that, Era keeps it current.
-- **Link your banks through MX** when Era offers a choice: MX updates balances daily.
+- **Link your banks with MX** (Era's **Connect** > **Link with MX**); use Stripe only for a bank where MX
+  doesn't work. A newly linked bank can take **15 minutes to 1 hour** to show up in Era; that's normal.
 
 ## Install
 **In the Claude desktop app** (no terminal needed):

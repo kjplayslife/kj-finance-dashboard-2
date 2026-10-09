@@ -7,18 +7,13 @@ and use the plan's normal usage (a run takes about a minute); no API credits.
 
 Do this after the first publish works (SKILL.md step 8), so the routine has a dashboard to update.
 
-## A. GitHub account and the folder as a private repo
-1. **GitHub account**: if they don't have one, open https://github.com/signup in their own browser; they
-   sign up themselves (free plan is fine).
-2. **Command line tools** on this Mac: `git --version` (if missing, macOS offers to install the
-   command line tools; accept). `gh --version` for the GitHub CLI; if missing: `brew install gh` when
-   Homebrew exists, otherwise open https://cli.github.com in their browser and have them download and
-   run the macOS installer.
-3. **Sign gh in**: `gh auth login --hostname github.com --git-protocol https --web`. It prints a one-time
-   code and opens github.com/login/device; they enter the code and approve in their browser. Check:
-   `gh auth status` shows their account.
-4. **Copy ROUTINE.md** into the folder: `cp "${CLAUDE_PLUGIN_ROOT}/engine/ROUTINE.md" .`
-5. **Create the repo and push** (repo name e.g. `my-finances`; always private):
+## A. GitHub ready? Then the folder as a private repo
+1. **GitHub** (account, Git, `gh` signed in, the GitHub connector and Claude GitHub App on Claude) is the
+   **github-setup** skill. Check quietly: `gh auth status` shows an active account. If not, run
+   github-setup now (Skill tool `kj-finance-dashboard-2:github-setup`, or read
+   `${CLAUDE_PLUGIN_ROOT}/skills/github-setup/SKILL.md`), then come back.
+2. **Copy ROUTINE.md** into the folder: `cp "${CLAUDE_PLUGIN_ROOT}/engine/ROUTINE.md" .`
+3. **Create the repo and push** (repo name e.g. `my-finances`; always private):
    ```bash
    git init -q && git add -A && git commit -qm "Finance dashboard: first setup"
    git branch -M main
@@ -29,21 +24,21 @@ Do this after the first publish works (SKILL.md step 8), so the routine has a da
    `main` just has to exist. The `.gitignore` keeps `csv/` (raw bank exports) out of the repo.
 
 ## B. Let Claude's cloud see the repo
-1. In their own browser open https://claude.ai/settings/connectors and connect **GitHub** (it may say
-   "GitHub Integration"). **Sign in with the same GitHub account that owns the repo.** If their browser is
-   signed in to a different GitHub account, the routine later fails with "repository could not be
-   found" even though everything looks connected; fix by disconnecting GitHub on claude.ai and
-   reconnecting while signed in to the right account.
-2. When GitHub asks where to install the Claude app, choose their account and give it access to the
-   new repo (or all repositories).
+github-setup already connected GitHub to Claude with **All repositories**, so the new repo is visible.
+Confirm with them: Claude app > Customize > Connectors > **Yours** > **GitHub Integration** shows the
+first two boxes green, the account under **Claude GitHub App** is the same one `gh` is signed in as, and
+**Check repository status** > their new repo says cloud sessions have access. If they chose "Only select
+repositories", add the repo at github.com/settings/installations > Claude > **Configure**. A different
+account there causes "repository could not be found" later: **Disconnect**, sign the browser in to the
+right GitHub account, and connect again (github-setup step 4).
 
 ## C. Create the routine
 Ask what time they want it (morning is typical) and their time zone. Routine schedules are in **UTC**:
 convert (8:00 AM Eastern = 12:00 UTC in summer, 13:00 in winter; pick one and tell them it shifts an
 hour with daylight saving).
 
-Use the `schedule` skill if it's available; otherwise open https://claude.ai/code/routines in the browser
-pane and create it there with them. Settings:
+Use the `schedule` skill if it's available; otherwise create it with them on the **Routines** page (Code tab sidebar;
+if it isn't there, **More** > add **Routines**) or https://claude.ai/code/routines. Settings:
 - **Name**: "Finance dashboard daily sync"
 - **Repository**: their new repo
 - **Schedule**: daily, cron `0 <UTC hour> * * *`
@@ -72,7 +67,7 @@ for local work: **run `git pull origin claude/data` before changing anything her
 (the routine commits every morning). The finance-customize-v2 and update-finances-v2 skills do this.
 
 ## Troubleshooting
-- "repository could not be found": claude.ai's GitHub link is a different GitHub account (B.1).
+- "repository could not be found": claude.ai's GitHub link is a different GitHub account (B).
 - Run shows no Era tools: the Era connector isn't attached to the routine, or needs reconnecting on
   claude.ai (Customize > Connectors).
 - Artifact publish refused: the routine must read the artifact before publishing (ROUTINE.md does).

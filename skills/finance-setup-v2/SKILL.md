@@ -45,22 +45,21 @@ signing in to their bank, choices).
   `winget install GitHub.cli`; Git is already there because Claude Code on Windows needs it); paths
   are like `C:\Users\<name>\Documents\Finances`. The cloud routine itself runs the same for everyone.
 
-## 0. Era connected? (before anything else)
-Check whether the **Era Context** connector is connected and on: ToolSearch for
-"list_financial_accounts" (or "Era"). If the Era tools are there, say nothing and go to step 1.
-If not, open with a one-line hello (what they're about to get, about 30-45 minutes, one step at a time),
-then this comes first, in two short steps (details in `references/era.md`, A.1 and B):
-1. **An Era account** (skip if they have one): open KJ's referral link https://era.app/#via=kj in their
-   own browser, with the one-line disclosure from era.md A.1. They sign up. Mention now that Era is
-   free for up to 2 linked accounts and **$9 a month for more than 2**; they don't need to link any banks
-   yet (that comes later, step 6).
-2. **Connect Era to Claude**: open https://claude.ai/settings/connectors in their browser; they add
-   **Era Context**, approve it, and make sure it's turned on.
-Then check again with ToolSearch. If you still can't see the Era tools after they say it's connected,
-ask them to start a **fresh chat**: a new Code session in this same folder, and type "/finance-setup-v2"
-again (nothing is lost; setup hasn't created anything yet).
+## 0. Era and GitHub ready? (before anything else)
+KJ's course sets up Era (account, every bank and card linked, the Era Context connector) and GitHub
+(`gh` signed in, the GitHub connector on Claude) **before** the dashboard is built. Check quietly:
+ToolSearch for "list_financial_accounts" (Era), and `gh auth status` (GitHub).
+- **Both there**: say nothing and go to step 1.
+- **Otherwise**: open with a one-line hello (what they're about to get, about 30-45 minutes, one step at
+  a time), then run the missing setup skill(s) first, in this order: **era-setup**, then
+  **github-setup** (Skill tool `kj-finance-dashboard-2:era-setup` / `kj-finance-dashboard-2:github-setup`,
+  or read `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` and follow it). They hold the walk-throughs;
+  don't repeat them here. When they finish, come back to step 1.
+- If era-setup ends with "start a new Code session" (the Era tools only show up in a new session), they
+  type "/finance-setup-v2" in the new session; nothing is lost, setup starts again at step 0 and moves on.
 (If they say up front they don't want a bank connection at all, skip this step: that's the CSV-only
 setup, step 4.)
+If anything goes wrong anywhere in setup, check `references/where-people-get-stuck.md` first.
 
 ## 1. Quiet checks (say nothing unless something needs them)
 1. **Folder**: `pwd`, `ls -A`. The dashboard lives in its own folder. If this folder isn't empty and isn't
@@ -102,8 +101,8 @@ One AskUserQuestion call with two questions:
 2. **"How many credit cards do you use for <it>?"** Options: None / 1 / 2-3 / 4 or more.
 Keep the answers: they're your checklist for linking in Era, for the year-to-date CSVs, and for the Era
 cost. Right after they answer, tell them plainly how many accounts that comes to (each checking, savings
-and credit card counts as one) and that **linking more than 2 accounts in Era costs $9 a month** (Era's
-paid plan; 2 or fewer is free; confirm the price on era.app).
+and credit card counts as one) and that **linking more than 2 accounts in Era costs about $9 a month**
+(Era's **Organize** plan, up to 15 accounts; 2 or fewer is free; confirm the price on era.app).
 
 ## 4. How it will work (fully automatic)
 Everyone sets up the **fully automatic** version (`--option cloud`); that's what makes this dashboard
@@ -113,8 +112,8 @@ worth having. In a few short lines (no menu):
   and sends a phone notification with a link to it.
 - A free **GitHub** account keeps their finance folder private and reachable by the routine; you do the
   GitHub steps, they just sign in.
-- Cost: **Claude Pro or higher** (Max, Team, Enterprise). Era is free for up to 2 linked accounts and
-  **paid for more than 2** (about $9/month; confirm on era.app). From their answers in step 3, say how
+- Cost: **Claude Pro ($20/month) or higher** (Max, Team, Enterprise). Era is free for up to 2 linked
+  accounts; more than 2 needs Era's **Organize** plan (about $9/month; confirm on era.app). From their answers in step 3, say how
   many accounts that is and whether it means the paid Era plan.
 Then AskUserQuestion: **"Ready to set it up this way?"** Options: "Yes, let's go (Recommended)" /
 "I'd rather not connect my bank". If they're on the free Claude plan, they can upgrade at
@@ -172,11 +171,12 @@ next, banks, number of cards, set-asides); if the session restarts, step 1 picks
 fills in the rest.
 
 ## 6. Connect the data
-- Fully automatic (and "Era from this computer"): Era is already connected (step 0). Now they link their
-  banks and cards in Era (`references/era.md` A.2): **try MX first, and use Stripe for any bank where MX
-  doesn't work**, and expect **a few minutes** before linked accounts show up. Go down their bank list
-  from step 3 one at a time. Then the first full pull (era.md D), and `references/option-cloud.md` in
-  step 9.
+- Fully automatic (and "Era from this computer"): Era is already connected and their banks linked
+  (step 0, era-setup). Call `accounts__list_financial_accounts` and compare with their bank list from
+  step 3. Anything missing: link it now as in era-setup step 3 (white **Connect** > **Link with MX**;
+  **Stripe** if MX doesn't work for that bank; it can take **15 minutes to 1 hour** to show up, so keep
+  going and check again later). Then the first full pull (era.md D), and `references/option-cloud.md`
+  in step 9.
   **Before the first pull, explain history** in a few plain lines: **Era can only pull about the last
   1 to 3 months** of transactions, plus everything from now on. To have **all of this year** in the
   dashboard, they download a **year-to-date CSV** (Jan 1 to today) from **every** bank account and card
@@ -212,7 +212,7 @@ them through the tabs. Every setup ends with them **pinning the dashboard** in t
 **installing the Claude phone app** (signed in, notifications on), so it's one tap away on their phone.
 
 ## 9. Keep it updated
-- Fully automatic: `references/option-cloud.md` (GitHub, the daily routine, the first test run, the phone
+- Fully automatic: `references/option-cloud.md` (the private repo, the daily routine, the first test run, the phone
   notification).
 - "Era from this computer" (only if they insisted in step 4): `references/option-local.md` (how
   /update-finances-v2 works; the daily task on this computer, and the desktop app's keep-awake setting).
