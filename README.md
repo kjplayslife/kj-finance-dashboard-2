@@ -44,7 +44,7 @@ Plan on 30 to 45 minutes, most of it sign-ups and signing in to your banks.
 
 ## Before you set up
 - **Turn off any older KJ finance plugin** (anything before 2.0) in Customize > Plugins. If it's still
-  on, Claude can pick up one of its old skills and mix the two versions. Every 2.0 skill ends in "-v2".
+  on, Claude can pick up one of its old skills and mix the two versions. Every 2.0 skill ends in "-v2", plus the two setup helpers /era-setup and /github-setup.
 - **Your full year of history:** Era can only pull about the last 1 to 3 months of transactions, plus
   everything from then on. To have **all of this year** in your dashboard, you'll download a
   year-to-date CSV (Jan 1 to today) from every bank account and card **once**, during setup. Claude
@@ -53,10 +53,11 @@ Plan on 30 to 45 minutes, most of it sign-ups and signing in to your banks.
 
 ## Install
 **In the Claude desktop app** (no terminal needed):
-1. Open the plugin settings: **Customize > Plugins** (or the **+** button > **Plugins** > **Manage
-   plugins**).
-2. Go to **Marketplaces** > **Add**, and enter `kjplayslife/kj-finance-dashboard-2`.
-3. Find **KJ Finance Dashboard 2.0** in the list and click **Install**.
+1. Open the **Code** tab, then **Customize** > **Plugins**.
+2. Click the **+ Add** dropdown > **Add marketplace** > **Add from a repository**, enter
+   `kjplayslife/kj-finance-dashboard-2` and click **Sync**.
+3. Click **Add** on **KJ Finance Dashboard 2.0**. To check: in a new Code chat, type `/kj` and the
+   skills show up.
 
 **Or from a terminal:**
 ```bash
@@ -64,13 +65,19 @@ claude plugin marketplace add kjplayslife/kj-finance-dashboard-2 && claude plugi
 ```
 
 ## Set up
-1. Make an empty folder for your finances (for example `Documents/Finances`).
-2. In the Claude desktop app, open the **Code** tab and start a new session in that folder.
-3. Type **/finance-setup-v2**. Claude walks you through each step, builds the dashboard and checks it
+Three steps, in this order. Each one walks you through it and checks it worked.
+1. **/era-setup**: your Era account, linking every bank and card, and connecting Era to Claude.
+2. **/github-setup**: a free GitHub account, the GitHub tools on your computer, connecting GitHub to
+   Claude, and a final checklist that tells you when you're ready.
+3. **/finance-setup-v2**: builds your dashboard. Make an empty folder for your finances (for example
+   `Documents/Finances`), open the **Code** tab, start a new session in that folder and type
+   **/finance-setup-v2**. Claude walks you through each step, builds the dashboard and checks it
    with you. When it asks for permission to run something, approve it.
-4. At the end, **pin your dashboard** in the claude.ai sidebar and open it once on your phone.
+   At the end, **pin your dashboard** in the claude.ai sidebar and open it once on your phone.
 
 ## Use
+- **/era-setup** and **/github-setup**: run again any time to check Era or GitHub, link another bank,
+  or fix "repository could not be found".
 - **/update-finances-v2**: fresh numbers right now (it also happens by itself every morning).
 - **/finance-customize-v2**: budgets, categories, set-aside percentages, account names, the title, the Bible
   verse footers, or updating to a newer version of the dashboard.
