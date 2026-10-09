@@ -65,6 +65,9 @@ Plan on 30 to 45 minutes, most of it sign-ups and signing in to your banks.
 claude plugin marketplace add kjplayslife/kj-finance-dashboard-2 && claude plugin install kj-finance-dashboard-2@kj-finance
 ```
 
+## Update to a new version
+In the Claude app: Customize > Plugins > white **+ Add** dropdown > **Manage marketplaces** > the **...** next to **kj-finance** > **Check for updates** (wait for "Marketplace updated") > **Done**; then Plugins > **Yours** > the KJ Finance Dashboard plugin > **Update** (it says "Updated"). New sessions have the new version.
+
 ## Set up
 Three steps, in this order. Each one walks you through it and checks it worked.
 1. **/era-setup**: your Era account, linking every bank and card, and connecting Era to Claude.

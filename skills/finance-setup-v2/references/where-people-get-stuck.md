@@ -19,6 +19,7 @@ what they see (or a screenshot) before guessing.
 - **Path**: Code tab > **Customize** > **Plugins** > white **+ Add** dropdown > **Add marketplace** >
   **Add from a repository** > paste `kjplayslife/kj-finance-dashboard-2` > **Sync** > **Add** on
   "KJ Finance Dashboard 2.0".
+- **Updating to a new version** -> Customize > Plugins > white **+ Add** dropdown > **Manage marketplaces** > the **...** next to **kj-finance** > **Check for updates** (wait for "Marketplace updated") > **Done**; then Plugins > **Yours** > the KJ Finance Dashboard plugin > **Update** (it says "Updated"). New sessions have the new version.
 - **Typing "/kj" in a new chat shows nothing** -> check **+** > hover **Plugins**, or **Manage plugins** >
   **Yours**. Not there: add the marketplace again. There but off: turn it on. Then start a **new** Code
   session (skills load when a session starts).

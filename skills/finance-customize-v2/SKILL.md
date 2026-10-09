@@ -55,7 +55,8 @@ push to `claude/data` so the routine uses the change. After any change: `python3
   set `bill_month_shift` with a regex for that payee.
 - **Something counted wrong** ("that's not income, it's my own transfer"): add a rule (e.g. category
   Transfers, `"when": "in"`) rather than one-off overrides, so future rows are right too.
-- **Update to the newest plugin version**: `python3 "${CLAUDE_PLUGIN_ROOT}/engine/scripts/setup_folder.py"
+- **Update to the newest plugin version**: first the plugin itself, which they do in the Claude app:
+  Customize > Plugins > white **+ Add** dropdown > **Manage marketplaces** > the **...** next to **kj-finance** > **Check for updates** (wait for "Marketplace updated") > **Done**; then Plugins > **Yours** > the KJ Finance Dashboard plugin > **Update** (it says "Updated"). New sessions have the new version. Then in a new session: `python3 "${CLAUDE_PLUGIN_ROOT}/engine/scripts/setup_folder.py"
   --dest . --refresh` (replaces scripts/ and dashboard/template.html only; their config, rules, data and
   edits stay). Cloud setups also take the new routine steps: `cp "${CLAUDE_PLUGIN_ROOT}/engine/ROUTINE.md" .`
   (the routine reads this file every morning). Then sync, publish, check, and (cloud) commit + push.
