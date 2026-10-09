@@ -1,6 +1,7 @@
 ---
 name: github-setup
-description: Set up GitHub for KJ Finance Dashboard 2.0 so the daily cloud update can work - a free GitHub account, Homebrew, Git and the GitHub CLI (winget on Windows), gh signed in, the GitHub connector and Claude GitHub App on Claude with the same account, a check that it's all right, then KJ's setup checklist item by item. Triggers on "/github-setup", "set up GitHub", "install the GitHub CLI", "connect GitHub to Claude", "repository could not be found", "am I ready to set up my dashboard", "setup checklist".
+description: Set up GitHub for KJ Finance Dashboard 2.0 so the daily cloud update can work - a free GitHub account, Homebrew, Git and the GitHub CLI (winget on Windows), gh signed in, the GitHub connector and Claude GitHub App on Claude with the same account, a check that it's all right, then KJ's setup checklist item by item. Runs only when you type its slash command.
+disable-model-invocation: true
 ---
 
 # GitHub setup (and the setup checklist)

@@ -1,6 +1,7 @@
 ---
 name: finance-setup-v2
-description: First-time setup for KJ Finance Dashboard 2.0. Walks the user step by step from "just installed" to a working personal finance dashboard (a private claude.ai page plus a local HTML backup), kept updated fully automatically (Era + a daily cloud routine on GitHub), or from bank CSV files only for people who don't want a bank connection. Triggers on "/finance-setup-v2", "set up my finance dashboard", "set up KJ finance dashboard", "finance dashboard 2.0 setup", "set up my finances", or when update-finances-v2 finds no data/config.json.
+description: First-time setup for KJ Finance Dashboard 2.0. Walks the user step by step from "just installed" to a working personal finance dashboard (a private claude.ai page plus a local HTML backup), kept updated fully automatically (Era + a daily cloud routine on GitHub), or from bank CSV files only for people who don't want a bank connection. Runs only when you type its slash command.
+disable-model-invocation: true
 ---
 
 # KJ Finance Dashboard 2.0: setup
@@ -51,9 +52,10 @@ KJ's course sets up Era (account, every bank and card linked, the Era Context co
 ToolSearch for "list_financial_accounts" (Era), and `gh auth status` (GitHub).
 - **Both there**: say nothing and go to step 1.
 - **Otherwise**: open with a one-line hello (what they're about to get, about 30-45 minutes, one step at
-  a time), then run the missing setup skill(s) first, in this order: **era-setup**, then
-  **github-setup** (Skill tool `kj-finance-dashboard-2:era-setup` / `kj-finance-dashboard-2:github-setup`,
-  or read `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` and follow it). They hold the walk-throughs;
+  a time), then do the missing setup first, in this order: era-setup, then github-setup. Read
+  `${CLAUDE_PLUGIN_ROOT}/skills/era-setup/SKILL.md` (then `.../github-setup/SKILL.md`) and follow it
+  right here in this session (these skills only start from their slash command, so read the file
+  rather than trying to invoke them). They hold the walk-throughs;
   don't repeat them here. When they finish, come back to step 1.
 - If era-setup ends with "start a new Code session" (the Era tools only show up in a new session), they
   type "/finance-setup-v2" in the new session; nothing is lost, setup starts again at step 0 and moves on.
@@ -65,8 +67,8 @@ If anything goes wrong anywhere in setup, check `references/where-people-get-stu
 1. **Folder**: `pwd`, `ls -A`. The dashboard lives in its own folder. If this folder isn't empty and isn't
    meant for this, suggest a new one such as `~/Documents/Finances` and ask them to open a new Code
    session in it and type "/finance-setup-v2" again. If `data/config.json` already exists: with an
-   `artifact_url` in it, this folder is already set up (offer `finance-customize-v2` or
-   `update-finances-v2` instead); without one, setup was interrupted (often the new session after adding
+   `artifact_url` in it, this folder is already set up (tell them to type `/finance-customize-v2` or
+   `/update-finances-v2` instead); without one, setup was interrupted (often the new session after adding
    Era): read FINANCE.md if it exists, and pick up where it left off (usually step 6) without asking the
    step 2-5 questions again.
 2. **Other finance plugins**: look for any other finance, budget or money plugin that's installed **and
@@ -223,7 +225,8 @@ Write `FINANCE.md` in their folder (short): which option, the artifact URL, acco
 from, their goals, how to update ("/update-finances-v2"), how to change things ("/finance-customize-v2"), and
 anything decided during setup (rules added, accounts excluded, routine id and time).
 Write a two-line `CLAUDE.md`: "This folder is a KJ Finance Dashboard 2.0 finance folder. Read FINANCE.md
-first; use the kj-finance-dashboard-2 skills (update-finances-v2, finance-customize-v2)."
+first. To update or change the dashboard, type /update-finances-v2 or /finance-customize-v2 (the
+plugin's skills only run from their slash commands)."
 For the fully automatic setup, commit and push these (see option-cloud.md).
 
 ## 11. Wrap up

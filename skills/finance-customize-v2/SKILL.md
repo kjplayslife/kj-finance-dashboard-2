@@ -1,6 +1,7 @@
 ---
 name: finance-customize-v2
-description: Change anything about a KJ Finance Dashboard 2.0 - budgets, the tax/tithe/savings set-asides and their percentages, categories (add, rename, remove, "+ New category"), category rules for a merchant, account names, hiding an account, the dashboard title, the Bible verse footers, or updating the dashboard to the plugin's newest version. Triggers on "/finance-customize-v2", "change my budget", "add a category", "new category", "rename this account", "turn off the verses", "change my savings percent", "stop counting X as income", "update my dashboard to the new version".
+description: Change anything about a KJ Finance Dashboard 2.0 - budgets, the tax/tithe/savings set-asides and their percentages, categories (add, rename, remove, "+ New category"), category rules for a merchant, account names, hiding an account, the dashboard title, the Bible verse footers, or updating the dashboard to the plugin's newest version. Runs only when you type its slash command.
+disable-model-invocation: true
 ---
 
 # KJ Finance Dashboard 2.0: customize

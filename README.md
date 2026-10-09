@@ -87,6 +87,9 @@ Three steps, in this order. Each one walks you through it and checks it worked.
   verse footers, or updating to a newer version of the dashboard.
 - Or just ask Claude about your money in that folder.
 
+The plugin's skills only run when you type their slash command, so chatting with Claude never starts a
+setup or an update by accident.
+
 ## What it does with your data
 - Your transactions stay in your finance folder on your computer and in your own private GitHub
   repository.

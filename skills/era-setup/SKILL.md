@@ -1,6 +1,7 @@
 ---
 name: era-setup
-description: Set up Era for KJ Finance Dashboard 2.0, from no Era account to Era fully connected - create the Era account, pick the plan (free for 2 accounts, about $9/month for more), link every bank and card (MX first, Stripe if MX fails), connect the Era Context connector in Claude, and confirm Claude can see the accounts. Triggers on "/era-setup", "set up Era", "connect Era", "link my banks", "connect my bank to Claude", "Era isn't connected", or when another KJ finance skill finds no Era tools.
+description: Set up Era for KJ Finance Dashboard 2.0, from no Era account to Era fully connected - create the Era account, pick the plan (free for 2 accounts, about $9/month for more), link every bank and card (MX first, Stripe if MX fails), connect the Era Context connector in Claude, and confirm Claude can see the accounts. Runs only when you type its slash command.
+disable-model-invocation: true
 ---
 
 # Era setup

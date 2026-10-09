@@ -26,7 +26,7 @@ scheduled-tasks tool
 - `prompt` (self-contained; fill in the real folder path and artifact URL):
   ```
   Daily finance dashboard update. Work in the folder <ABSOLUTE PATH> (cd there first) and follow
-  the update-finances-v2 skill from the kj-finance-dashboard-2 plugin exactly, as an unattended run:
+  these steps exactly, as an unattended run:
   1. Read data/config.json (artifact_url, accounts to skip under era.exclude_accounts).
   2. Era Context connector, read-only, only accounts__list_financial_accounts (include_hidden true)
      and transactions__list_transactions (each account, page_size 100, include_pending true,

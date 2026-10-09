@@ -1,13 +1,14 @@
 ---
 name: update-finances-v2
-description: Refresh a KJ Finance Dashboard 2.0 with the latest transactions and balances - pulls from Era (or imports new bank CSV files), rebuilds the dashboard, republishes the private artifact and updates the local HTML backup. Triggers on "/update-finances-v2", "update finances", "update my finances", "refresh my dashboard", "sync my finances", "pull my transactions", "I added new CSVs", or a scheduled daily update task.
+description: Refresh a KJ Finance Dashboard 2.0 with the latest transactions and balances - pulls from Era (or imports new bank CSV files), rebuilds the dashboard, republishes the private artifact and updates the local HTML backup. Runs only when you type its slash command.
+disable-model-invocation: true
 ---
 
 # KJ Finance Dashboard 2.0: update
 
 Work in the finance folder (the one with `data/config.json`). If this session isn't in it, `cd` to it
-(FINANCE.md or the scheduled task's prompt names it). If there's no config anywhere, run the
-`finance-setup-v2` skill instead.
+(FINANCE.md or the scheduled task's prompt names it). If there's no config anywhere, tell them to type
+`/finance-setup-v2` to set it up first.
 
 Read `data/config.json` first: `setup_option` decides the path, `artifact_url` is where to publish.
 If its `plugin_version` is older than the plugin's (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`),

@@ -9,9 +9,8 @@ Do this after the first publish works (SKILL.md step 8), so the routine has a da
 
 ## A. GitHub ready? Then the folder as a private repo
 1. **GitHub** (account, Git, `gh` signed in, the GitHub connector and Claude GitHub App on Claude) is the
-   **github-setup** skill. Check quietly: `gh auth status` shows an active account. If not, run
-   github-setup now (Skill tool `kj-finance-dashboard-2:github-setup`, or read
-   `${CLAUDE_PLUGIN_ROOT}/skills/github-setup/SKILL.md`), then come back.
+   **github-setup** skill. Check quietly: `gh auth status` shows an active account. If not, read
+   `${CLAUDE_PLUGIN_ROOT}/skills/github-setup/SKILL.md` and follow it here, then come back.
 2. **Copy ROUTINE.md** into the folder: `cp "${CLAUDE_PLUGIN_ROOT}/engine/ROUTINE.md" .`
 3. **Create the repo and push** (repo name e.g. `my-finances`; always private):
    ```bash
