@@ -940,7 +940,9 @@ function wireEdits(boxId){
 }
 function dataChanged(){renderKPI();renderMom();renderTransfers();renderBudget();document.dispatchEvent(new CustomEvent("dataChanged"))}
 // ---------- Spending by month (top of Transactions): by need (stacked bars) or by category ----------
-let trendChart=null,trendCat=lsGet(LS.trend,"Groceries");
+// The category chart starts on Subscriptions (or the first spending category); a category you click is remembered.
+let trendChart=null,trendCat=lsGet(LS.trend,"Subscriptions");
+if(SPEND_CATS.indexOf(trendCat)<0)trendCat=SPEND_CATS.indexOf("Subscriptions")>=0?"Subscriptions":SPEND_CATS[0];
 let tView="cat";  // always opens on By category; By need is one click away
 // The unfinished month: By category leaves it off unless "Show <month>" is ticked;
 // By need shows it unless "Hide <month>" is ticked. Each view remembers its own choice.
