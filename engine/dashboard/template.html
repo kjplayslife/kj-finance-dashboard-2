@@ -550,7 +550,7 @@ function sumOver(m,f){return isYear(m)?yearMonths(m).reduce((s,x)=>s+f(x),0):f(m
 function renderMonthPills(){
   const c=document.getElementById("ov-months");c.innerHTML="";
   function pill(key,txt){const b=document.createElement("button");b.className="pill"+(key===curMonth?" active":"");b.textContent=txt;
-    b.onclick=()=>{curMonth=key;lsSet(LS.ovm,key);renderMonthPills();renderKPI();renderMom();renderTransfers();renderBills()};c.appendChild(b)}
+    b.onclick=()=>{curMonth=key;lsSet(LS.ovm,key);momShowPartial=null;renderMonthPills();renderKPI();renderMom();renderTransfers();renderBills()};c.appendChild(b)}
   MONTHS.forEach((m,i)=>{
     if(i===0||m.slice(0,4)!==MONTHS[i-1].slice(0,4))pill(m.slice(0,4),m.slice(0,4));
     pill(m,mLabel(m)+(m===PARTIAL?" (so far)":""));
@@ -657,10 +657,12 @@ const MOM=[
 ].filter(s=>(s.key!=="savings"||HAS_SAVINGS)&&(s.key!=="debt"||HAS_CARDS)&&(s.key!=="ownerpay"||HAS_OWNER_PAY));
 const MOM_DEFAULT=HAS_SAVINGS?"savings":"net";
 let momKey=lsGet(LS.mom,MOM_DEFAULT);if(!MOM.some(s=>s.key===momKey))momKey=MOM_DEFAULT;
-// The unfinished month shows on this chart (gray and dashed) unless "Show <month>" is unticked.
-let momShowPartial=lsGet(LS.momPartial,true)!==false;
+// The unfinished month shows on this chart (gray and dashed) when it's the month picked above (or the
+// year view), and is hidden when a finished month is picked; "Show <month>" overrides until the month changes.
+let momShowPartial=null;  // null = automatic
+function momPartialShown(){return momShowPartial!==null?momShowPartial:(curMonth===PARTIAL||isYear(curMonth))}
 function momData(key){
-  const keep=m=>momShowPartial||m!==PARTIAL;
+  const keep=m=>momPartialShown()||m!==PARTIAL;
   if(key==="savings"||key==="debt"){
     const vals=key==="savings"?(SAVINGS?SAVINGS.values:BAL.months.map(()=>0)):BAL.months.map((m,i)=>BAL.accounts.filter(a=>a.type==="CreditCard").reduce((s,a)=>s+a.values[i],0));
     const idx=BAL.months.map((m,i)=>i).filter(i=>keep(BAL.months[i]));
@@ -696,8 +698,8 @@ function renderMom(){
   const box=document.getElementById("mom-partial");
   document.getElementById("mom-partial-wrap").hidden=!PARTIAL;
   if(PARTIAL){
-    document.getElementById("mom-partial-lbl").textContent="Show "+mLabel(PARTIAL);box.checked=momShowPartial;
-    box.onchange=()=>{momShowPartial=box.checked;lsSet(LS.momPartial,box.checked);renderMom()};
+    document.getElementById("mom-partial-lbl").textContent="Show "+mLabel(PARTIAL);box.checked=momPartialShown();
+    box.onchange=()=>{momShowPartial=box.checked;renderMom()};
   }
   const ctx=document.getElementById("mom-line");if(momChart)momChart.destroy();
   momChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[ds]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(isNet&&c.parsed.y>0?"+":"")+money(c.parsed.y)}}}}});
@@ -801,7 +803,7 @@ let txSort={key:"date",dir:-1};
 let needFilter=null;  // null = all; 0 = not rated; 1-3 = that rating (set by clicking the rating strip)
 function renderTxMonthPills(){
   const c=document.getElementById("tx-months");c.innerHTML="";
-  ["All"].concat(MONTHS).forEach(m=>{const b=document.createElement("button");b.className="pill"+(m===txMonth?" active":"");b.textContent=m==="All"?"All months":mLabel(m)+(m===PARTIAL?" (so far)":"");b.onclick=()=>{txMonth=m;renderTxMonthPills();renderTxTable();renderTrend()};c.appendChild(b)});
+  ["All"].concat(MONTHS).forEach(m=>{const b=document.createElement("button");b.className="pill"+(m===txMonth?" active":"");b.textContent=m==="All"?"All months":mLabel(m)+(m===PARTIAL?" (so far)":"");b.onclick=()=>{txMonth=m;showPartial=null;syncPartialBox();renderTxMonthPills();renderTxTable();renderTrend()};c.appendChild(b)});
 }
 function fillAccountFilter(){
   const sel=document.getElementById("tx-account-filter");
@@ -944,14 +946,15 @@ function dataChanged(){renderKPI();renderMom();renderTransfers();renderBudget();
 let trendChart=null,trendCat=lsGet(LS.trend,"Subscriptions");
 if(SPEND_CATS.indexOf(trendCat)<0)trendCat=SPEND_CATS.indexOf("Subscriptions")>=0?"Subscriptions":SPEND_CATS[0];
 let tView="cat";  // always opens on By category; By need is one click away
-// The unfinished month: By category leaves it off unless "Show <month>" is ticked;
-// By need shows it unless "Hide <month>" is ticked. Each view remembers its own choice.
-const showPartial={cat:!!lsGet(LS.showPartial,false),need:!lsGet(LS.hidePartialNeed,false)};
-function trendMonths(){return !showPartial[tView]&&PARTIAL?MONTHS.filter(m=>m!==PARTIAL):MONTHS}
+// The unfinished month shows on the chart when it's the month picked above (or All months), and is
+// hidden when a finished month is picked; the "Show <month>" box overrides that until the month changes.
+let showPartial=null;  // null = automatic
+function partialShown(){return showPartial!==null?showPartial:(txMonth===PARTIAL||txMonth==="All")}
+function trendMonths(){return !partialShown()&&PARTIAL?MONTHS.filter(m=>m!==PARTIAL):MONTHS}
 function syncPartialBox(){
-  if(!PARTIAL)return;const cat=tView==="cat";
-  document.getElementById("hide-partial-lbl").textContent=(cat?"Show ":"Hide ")+mLabel(PARTIAL);
-  document.getElementById("hide-partial").checked=cat?showPartial.cat:!showPartial.need;
+  if(!PARTIAL)return;
+  document.getElementById("hide-partial-lbl").textContent="Show "+mLabel(PARTIAL);
+  document.getElementById("hide-partial").checked=partialShown();
 }
 function renderTrendPills(){
   const c=document.getElementById("trend-pills");c.innerHTML="";c.style.display=tView==="cat"?"":"none";
@@ -963,8 +966,7 @@ function wireTrendControls(){
     const box=document.getElementById("hide-partial");syncPartialBox();
     document.getElementById("hide-partial-wrap").hidden=false;
     box.addEventListener("change",()=>{
-      if(tView==="cat"){showPartial.cat=box.checked;lsSet(LS.showPartial,box.checked)}
-      else{showPartial.need=!box.checked;lsSet(LS.hidePartialNeed,box.checked)}
+      showPartial=box.checked;
       renderTrend();
     });
   }
@@ -979,7 +981,7 @@ function renderTrend(){
   const TM=trendMonths();
   const labels=TM.map(m=>mLabel(m)+(m===PARTIAL?"*":""));
   const note=document.getElementById("tchart-note");
-  const partialNote=!PARTIAL?"":TM.includes(PARTIAL)?"* "+mLabel(PARTIAL)+" is still in progress.":MON_FULL[+PARTIAL.slice(5,7)-1]+" is hidden because it's still in progress. "+(tView==="cat"?"Check":"Uncheck")+" to show.";
+  const partialNote=!PARTIAL?"":TM.includes(PARTIAL)?"* "+mLabel(PARTIAL)+" is still in progress.":MON_FULL[+PARTIAL.slice(5,7)-1]+" is hidden because it's still in progress. Check to show.";
   if(tView==="cat"){
     const vals=TM.map(m=>spendByCat(m)[trendCat]||0);const col=CAT_COLORS[trendCat]||"#3c6c8a";
     // The stretch into the unfinished month is dashed with a light gray fill: that month isn't over yet.
