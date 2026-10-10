@@ -245,6 +245,8 @@ tbody tr:nth-child(even){background:#fcfbf8}
 .rc-empty{padding:20px 4px;text-align:center;color:#8a857a}
 .rc-empty b{display:block;color:#2f6f4e;font-size:15px;margin-bottom:2px}
 @media(max-width:760px){.rc-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}.rc-stat:last-child{grid-column:1/-1}}
+/* Phones: the Daily Recap's month numbers are just Real Income, Spent and Net, in one tight row. */
+@media(max-width:640px){.rc-stats,.rc-stats.even{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 10px}.rc-stat.rc-bal{display:none}.rc-stat:last-child{grid-column:auto}.rc-stat .lbl{font-size:11.5px}.rc-stat .val{font-size:clamp(14px,4.2vw,17px)}}
 @media(max-width:640px){
   .rc-item{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"what amt" "cat need";gap:8px 12px;padding:12px 0}
   .rc-date{display:none}.rc-what{grid-area:what}.rc-amt{grid-area:amt}.rc-item .category-select{grid-area:cat;max-width:200px}.rc-item>.need,.rc-item>.na{grid-area:need;justify-self:end}
@@ -1159,9 +1161,9 @@ function renderRecap(){
   const debt=CARDS.reduce((s,a)=>s+balanceFor(a,m),0);
   const sav=FIN.accounts.filter(a=>a.type==="Savings").reduce((s,a)=>s+balanceFor(a,m),0);
   document.getElementById("rc-month").textContent=mFull(m)+(m===PARTIAL?" so far":"");
-  const stat=(l,v,cls)=>'<div class="rc-stat"><div class="lbl">'+l+'</div><div class="val '+cls+'">'+v+'</div></div>';
+  const stat=(l,v,cls,x)=>'<div class="rc-stat'+(x?" "+x:"")+'"><div class="lbl">'+l+'</div><div class="val '+cls+'">'+v+'</div></div>';
   document.getElementById("rc-stats").innerHTML=stat("Real Income",money(inc),"gray")+stat("Spent",money(sp),"gray")+
-    stat("Net",(net>=0?"+":"")+money(net),net>=0?"green":"red")+(HAS_CARDS?stat("Credit Card Debt",money(debt),"orange"):"")+(HAS_SAVINGS?stat("Total Savings",money(sav),"blue"):"");
+    stat("Net",(net>=0?"+":"")+money(net),net>=0?"green":"red")+(HAS_CARDS?stat("Credit Card Debt",money(debt),"orange","rc-bal"):"")+(HAS_SAVINGS?stat("Total Savings",money(sav),"blue","rc-bal"):"");
   setCount(document.getElementById("rc-stats"),3+(HAS_CARDS?1:0)+(HAS_SAVINGS?1:0));
 
   const items=recapItems();
