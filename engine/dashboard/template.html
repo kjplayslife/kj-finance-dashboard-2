@@ -1375,12 +1375,16 @@ function wireScrollRows(){
   rows.forEach(el=>{
     const fade=()=>{const max=el.scrollWidth-el.clientWidth;el.classList.toggle("sx-l",max>2&&el.scrollLeft>2);el.classList.toggle("sx-r",max>2&&el.scrollLeft<max-2)};
     el._center=()=>{const a=el.querySelector(".active");if(a&&el.scrollWidth>el.clientWidth){const r=a.getBoundingClientRect(),e=el.getBoundingClientRect();el.scrollLeft+=(r.left+r.width/2)-(e.left+e.width/2)}fade()};
+    el._fade=fade;
     el.addEventListener("scroll",fade,{passive:true});
-    new MutationObserver(el._center).observe(el,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
+    // Re-center only when the row's buttons change (redrawn or a new one picked), not when the row's own
+    // fade classes change while someone is swiping, which snapped it back mid-swipe.
+    new MutationObserver(ms=>{if(ms.some(m=>!(m.type==="attributes"&&m.target===el)))el._center()}).observe(el,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
     el._center();
   });
   document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>setTimeout(()=>rows.forEach(r=>r._center()),0)));
-  window.addEventListener("resize",()=>rows.forEach(r=>r._center()));
+  // Resize only updates the fades (phones fire resize when the address bar hides during a scroll).
+  window.addEventListener("resize",()=>rows.forEach(r=>r._fade()));
 }
 // No pinch-zoom on phones: zooming in let the page slide sideways. (iOS also zoomed into small inputs.)
 function noZoom(){
