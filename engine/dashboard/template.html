@@ -229,6 +229,8 @@ tbody tr:nth-child(even){background:#fcfbf8}
 .rc-stat.net-pos,.rc-stat.net-neg{margin:-6px 0;padding:6px 8px;border-radius:8px;border:1px solid}
 .rc-stat.net-pos{background:rgba(47,111,78,.06);border-color:rgba(47,111,78,.2)}
 .rc-stat.net-neg{background:rgba(184,66,58,.06);border-color:rgba(184,66,58,.2)}
+/* Phones: the whole month card takes the green/red fill instead of just the Net box. */
+@media(max-width:640px){.card.rc-net-pos{background:rgba(47,111,78,.06);border-color:rgba(47,111,78,.2)}.card.rc-net-neg{background:rgba(184,66,58,.06);border-color:rgba(184,66,58,.2)}.rc-stats .rc-stat.net-pos,.rc-stats .rc-stat.net-neg{margin:0;padding:0;border:0;background:none}}
 .rc-legend{font-size:12px;color:#8a857a;margin:-6px 0 10px}
 .rc-legend b{font-weight:600}
 .rc-list{list-style:none;margin:0;padding:0}
@@ -591,12 +593,12 @@ function renderKPI(){
   const est=SAVINGS&&SAVINGS.estimatedBefore&&bm<SAVINGS.estimatedBefore.slice(0,7)&&!isLatestMonth(bm);
   const box=document.getElementById("ov-kpis");setCount(box,3+(HAS_CARDS?1:0)+(HAS_SAVINGS?1:0)+(HAS_OWNER_PAY?1:0));
   box.innerHTML=
-   kpi("income","Real Income",money(inc),"gray")+
-   kpi("spending","Spent",money(sp),"gray")+
-   kpi("net","Net",(net>=0?"+":"")+money(net),net>=0?"green":"red","","",net>=0?"net-pos":"net-neg")+
+   kpi("income","Real Income",money0(inc),"gray")+
+   kpi("spending","Spent",money0(sp),"gray")+
+   kpi("net","Net",(net>=0?"+":"")+money0(net),net>=0?"green":"red","","",net>=0?"net-pos":"net-neg")+
    (HAS_CARDS?debtKpi():"")+
-   (HAS_OWNER_PAY?kpi("ownerpay","Owner's Pay",money(sumOver(curMonth,ownerPay)),"purple","","Paid to yourself"):"")+
-   (HAS_SAVINGS?kpi("savings","Total Savings",money(sav),"blue",est?'<span class="est" title="Estimated: before the first transaction on record for this account">est.</span>':"",
+   (HAS_OWNER_PAY?kpi("ownerpay","Owner's Pay",money0(sumOver(curMonth,ownerPay)),"purple","","Paid to yourself"):"")+
+   (HAS_SAVINGS?kpi("savings","Total Savings",money0(sav),"blue",est?'<span class="est" title="Estimated: before the first transaction on record for this account">est.</span>':"",
      balanceNote(bm,FIN.accounts.filter(a=>a.type==="Savings"))):"");
 }
 // Balances follow the month picked above: a past month shows the balance at that month's end
@@ -646,7 +648,7 @@ function debtKpi(){
       '<span class="owed">'+(bal<0?money(-bal)+" credit":money(bal))+'</span></div><div class="bar"><span style="width:'+pct.toFixed(1)+'%"></span></div></li>'}).join("");
   const when=balanceWhen(CARDS,bm);
   return '<div '+pickAttrs("debt","debtkpi","Credit card debt "+money(total)+" "+when+". Show debt by month in the chart and the amount owed on each card.")+' aria-expanded="false">'+
-    '<div class="lbl">Credit Card Debt<span class="caret" aria-hidden="true">&#9662;</span></div><div class="val orange">'+money(total)+'</div>'+
+    '<div class="lbl">Credit Card Debt<span class="caret" aria-hidden="true">&#9662;</span></div><div class="val orange">'+money0(total)+'</div>'+
     '<div class="note">'+balanceNote(bm,CARDS)+'</div>'+
     '<div class="debt-pop"><div class="pop-ttl">Owed by card</div><ul class="cardlist">'+list+'</ul>'+(when?'<div class="pop-foot">Balances '+when+'</div>':"")+'</div></div>';
 }
@@ -1164,10 +1166,11 @@ function renderRecap(){
   const inc=realIncome(m),sp=spend(m),net=inc-sp;
   const debt=CARDS.reduce((s,a)=>s+balanceFor(a,m),0);
   const sav=FIN.accounts.filter(a=>a.type==="Savings").reduce((s,a)=>s+balanceFor(a,m),0);
+  const rcCard=document.getElementById("rc-stats").closest(".card");rcCard.classList.toggle("rc-net-pos",net>=0);rcCard.classList.toggle("rc-net-neg",net<0);
   document.getElementById("rc-month").textContent=mFull(m)+(m===PARTIAL?" so far":"");
   const stat=(l,v,cls,x)=>'<div class="rc-stat'+(x?" "+x:"")+'"><div class="lbl">'+l+'</div><div class="val '+cls+'">'+v+'</div></div>';
-  document.getElementById("rc-stats").innerHTML=stat("Real Income",money(inc),"gray")+stat("Spent",money(sp),"gray")+
-    stat("Net",(net>=0?"+":"")+money(net),net>=0?"green":"red",net>=0?"net-pos":"net-neg")+(HAS_CARDS?stat("Credit Card Debt",money(debt),"orange","rc-bal"):"")+(HAS_SAVINGS?stat("Total Savings",money(sav),"blue","rc-bal"):"");
+  document.getElementById("rc-stats").innerHTML=stat("Real Income",money0(inc),"gray")+stat("Spent",money0(sp),"gray")+
+    stat("Net",(net>=0?"+":"")+money0(net),net>=0?"green":"red",net>=0?"net-pos":"net-neg")+(HAS_CARDS?stat("Credit Card Debt",money0(debt),"orange","rc-bal"):"")+(HAS_SAVINGS?stat("Total Savings",money0(sav),"blue","rc-bal"):"");
   setCount(document.getElementById("rc-stats"),3+(HAS_CARDS?1:0)+(HAS_SAVINGS?1:0));
 
   const items=recapItems();
