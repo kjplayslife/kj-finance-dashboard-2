@@ -253,7 +253,7 @@ tbody tr:nth-child(even){background:#fcfbf8}
 @media(max-width:760px){.rc-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}.rc-stat:last-child{grid-column:1/-1}}
 /* Phones: the Daily Recap's month numbers are just Real Income, Spent and Net, in one tight row. */
 /* Phones: three equal columns, all left-aligned; Overview card numbers match this size. */
-@media(max-width:640px){.rc-stats,.rc-stats.even{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px}.rc-stat.rc-bal{display:none}.rc-stat:last-child{grid-column:auto}.rc-stat .lbl{font-size:12px}.rc-stat .val{font-size:clamp(17px,5.9vw,22px)}.kpi .val{font-size:clamp(20px,5.9vw,22px)}}
+@media(max-width:640px){.rc-stats,.rc-stats.even{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px}.rc-stat.rc-bal{display:none}.rc-stat:last-child{grid-column:auto}.rc-stat .lbl{font-size:12px}.rc-stat .val{font-size:clamp(18px,6.4vw,26px)}.kpi .val{font-size:clamp(20px,5.9vw,22px)}}
 @media(max-width:640px){
   .rc-item{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"what amt" "cat need";gap:8px 12px;padding:12px 0}
   .rc-date{display:none}.rc-what{grid-area:what}.rc-amt{grid-area:amt}.rc-item .category-select{grid-area:cat;max-width:200px}.rc-item>.need,.rc-item>.na{grid-area:need;justify-self:end}
@@ -1167,6 +1167,7 @@ function renderRecap(){
   const inc=realIncome(m),sp=spend(m),net=inc-sp;
   const debt=CARDS.reduce((s,a)=>s+balanceFor(a,m),0);
   const sav=FIN.accounts.filter(a=>a.type==="Savings").reduce((s,a)=>s+balanceFor(a,m),0);
+  setTimeout(fitRecapNums,0);
   const rcCard=document.getElementById("rc-stats").closest(".card");rcCard.classList.toggle("rc-net-pos",net>=0);rcCard.classList.toggle("rc-net-neg",net<0);
   document.getElementById("rc-month").textContent=mFull(m)+(m===PARTIAL?" so far":"");
   const stat=(l,v,cls,x)=>'<div class="rc-stat'+(x?" "+x:"")+'"><div class="lbl">'+l+'</div><div class="val '+cls+'">'+v+'</div></div>';
@@ -1396,6 +1397,20 @@ function wireScrollRows(){
   // Resize only updates the fades (phones fire resize when the address bar hides during a scroll).
   window.addEventListener("resize",()=>rows.forEach(r=>r._fade()));
 }
+// Phones: the Daily Recap's three month numbers are big; if one doesn't fit its column (a 5-figure
+// month), all three shrink together until they fit (never below 16px).
+function fitRecapNums(){
+  const vals=[].slice.call(document.querySelectorAll("#rc-stats .rc-stat .val")).filter(v=>v.offsetParent);
+  vals.forEach(v=>v.style.fontSize="");
+  if(!vals.length||!window.matchMedia("(max-width:640px)").matches)return;
+  let size=parseFloat(getComputedStyle(vals[0]).fontSize);
+  while(size>16&&vals.some(v=>v.scrollWidth>v.parentNode.clientWidth+2)){size-=1;vals.forEach(v=>v.style.fontSize=size+"px")}
+}
+function wireRecapFit(){
+  fitRecapNums();
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>setTimeout(fitRecapNums,0)));
+  window.addEventListener("resize",fitRecapNums);
+}
 // No pinch-zoom on phones: zooming in let the page slide sideways. (iOS also zoomed into small inputs.)
 function noZoom(){
   let m=document.querySelector('meta[name="viewport"]');
@@ -1406,7 +1421,7 @@ function noZoom(){
 (function(){
   var fns=[wireTabs,renderHeader,renderMonthPills,renderKPI,wireCardPicker,wireDebtPopover,renderMom,renderTransfers,renderBills,
     renderTxMonthPills,fillAccountFilter,renderTxTable,wireSortHeaders,wireFilters,wireNeedFilter,wireTableEdits,
-    wireTrendControls,renderTrendPills,renderTrend,renderBudget,renderAccounts,renderNetWorthChart,renderInsMonthPills,renderInsights,renderRecap,wireRecap,wireNewCategoryTip,wireNotes,pickStartTab,wireScrollRows,noZoom];
+    wireTrendControls,renderTrendPills,renderTrend,renderBudget,renderAccounts,renderNetWorthChart,renderInsMonthPills,renderInsights,renderRecap,wireRecap,wireNewCategoryTip,wireNotes,pickStartTab,wireScrollRows,noZoom,wireRecapFit];
   fns.forEach(function(fn){try{fn()}catch(e){console.error("Init error in "+fn.name+":",e)}});
   connectDb();
 })();
