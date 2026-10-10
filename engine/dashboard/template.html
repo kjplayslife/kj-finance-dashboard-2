@@ -233,6 +233,7 @@ tbody tr:nth-child(even){background:#fcfbf8}
 @media(max-width:640px){.card.rc-net-pos{background:rgba(47,111,78,.06);border-color:rgba(47,111,78,.2)}.card.rc-net-neg{background:rgba(184,66,58,.06);border-color:rgba(184,66,58,.2)}.rc-stats .rc-stat.net-pos,.rc-stats .rc-stat.net-neg{margin:0;padding:0;border:0;background:none}}
 .rc-legend{font-size:12px;color:#8a857a;margin:-6px 0 10px}
 .rc-legend b{font-weight:600}
+@media(max-width:640px){.rc-legend .rc-spent{display:none}}
 .rc-list{list-style:none;margin:0;padding:0}
 .rc-item{display:grid;grid-template-columns:62px minmax(0,1fr) 168px 96px 92px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #f0eee8}
 .rc-item:last-child{border-bottom:none}
@@ -1194,7 +1195,7 @@ function renderRecap(){
   let h="";
   if(spendRows.length){
     const tot=spendRows.reduce((s,t)=>s-t.amount,0);
-    h+='<div class="rc-legend">Rate each one: <b>1</b> Want &middot; <b>2</b> Could skip &middot; <b>3</b> Need. Spent '+money(tot)+'.</div><ul class="rc-list">'+spendRows.map(recapRow).join("")+'</ul>';
+    h+='<div class="rc-legend">Rate each one: <b>1</b> Want &middot; <b>2</b> Could skip &middot; <b>3</b> Need.<span class="rc-spent"> Spent '+money(tot)+'.</span></div><ul class="rc-list">'+spendRows.map(recapRow).join("")+'</ul>';
   }
   if(other.length)h+='<div class="rc-sub">Income, transfers and payments</div><ul class="rc-list">'+other.map(recapRow).join("")+'</ul>';
   h+='<div class="rc-done"><span>Ratings and categories save as you tap.</span><button type="button" class="btn" id="rc-done">Done for today</button></div>';
