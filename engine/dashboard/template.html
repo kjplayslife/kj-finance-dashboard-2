@@ -252,8 +252,8 @@ tbody tr:nth-child(even){background:#fcfbf8}
 .rc-empty b{display:block;color:#2f6f4e;font-size:15px;margin-bottom:2px}
 @media(max-width:760px){.rc-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}.rc-stat:last-child{grid-column:1/-1}}
 /* Phones: the Daily Recap's month numbers are just Real Income, Spent and Net, in one tight row. */
-/* Real Income on the left edge, Spent in the middle, Net on the right edge: equal gaps, even padding to the card. */
-@media(max-width:640px){.rc-stats,.rc-stats.even{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px}.rc-stat.rc-bal{display:none}.rc-stat:last-child{grid-column:auto}.rc-stat:nth-child(2){text-align:center}.rc-stat:nth-child(3){text-align:right}.rc-stat .lbl{font-size:12px}.rc-stat .val{font-size:clamp(17px,5.3vw,22px)}}
+/* Phones: three equal columns, all left-aligned; Overview card numbers match this size. */
+@media(max-width:640px){.rc-stats,.rc-stats.even{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px}.rc-stat.rc-bal{display:none}.rc-stat:last-child{grid-column:auto}.rc-stat .lbl{font-size:12px}.rc-stat .val{font-size:clamp(17px,5.9vw,22px)}.kpi .val{font-size:clamp(20px,5.9vw,22px)}}
 @media(max-width:640px){
   .rc-item{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"what amt" "cat need";gap:8px 12px;padding:12px 0}
   .rc-date{display:none}.rc-what{grid-area:what}.rc-amt{grid-area:amt}.rc-item .category-select{grid-area:cat;max-width:200px}.rc-item>.need,.rc-item>.na{grid-area:need;justify-self:end}
