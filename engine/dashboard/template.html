@@ -591,7 +591,7 @@ function pickAttrs(key,extraClass,label){
 }
 function kpi(key,l,v,cls,tag,note,extra){return '<div '+pickAttrs(key,extra||"",l+" "+v+". Show "+l+" by month in the chart.")+'><div class="lbl">'+l+(tag||"")+'</div><div class="val '+cls+'">'+v+'</div>'+(note?'<div class="note">'+note+'</div>':'')+'</div>'}
 function selectMom(key){
-  momKey=key;lsSet(LS.mom,key);
+  momKey=key;
   document.querySelectorAll("#ov-kpis .pick").forEach(c=>{const on=c.getAttribute("data-mom")===key;c.classList.toggle("active",on);c.setAttribute("aria-pressed",on?"true":"false")});
   renderMom();
 }
@@ -655,8 +655,8 @@ const MOM=[
   {key:"savings",label:"Savings",color:"#3c6c8a",balance:true},
   {key:"ownerpay",label:"Owner's Pay",color:"#8a6fb0"}
 ].filter(s=>(s.key!=="savings"||HAS_SAVINGS)&&(s.key!=="debt"||HAS_CARDS)&&(s.key!=="ownerpay"||HAS_OWNER_PAY));
-const MOM_DEFAULT=HAS_SAVINGS?"savings":"net";
-let momKey=lsGet(LS.mom,MOM_DEFAULT);if(!MOM.some(s=>s.key===momKey))momKey=MOM_DEFAULT;
+// The Overview chart always opens on Real Income; clicking a card switches it until the page is reloaded.
+let momKey="income";
 // The unfinished month shows on this chart (gray and dashed) when it's the month picked above (or the
 // year view), and is hidden when a finished month is picked; "Show <month>" overrides until the month changes.
 let momShowPartial=null;  // null = automatic
