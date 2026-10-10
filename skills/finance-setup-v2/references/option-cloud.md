@@ -21,6 +21,19 @@ Do this after the first publish works (SKILL.md step 8), so the routine has a da
    ```
    The data lives on the `claude/data` branch because cloud runs can only push to `claude/` branches;
    `main` just has to exist. The `.gitignore` keeps `csv/` (raw bank exports) out of the repo.
+4. **Pre-approve the routine's save steps (they run this, not you).** Claude's cloud safety check
+   sometimes blocks the morning run's `git commit`/`git push` (it happened to KJ: the dashboard
+   republished but the data never reached GitHub). A `.claude/settings.json` in the repo that allows
+   just the routine's own git and sync commands fixes it. Claude can't write that file itself (a file
+   that grants Claude permissions is blocked as self-modification, and it's their decision), so tell
+   them in one line what it does ("lets the daily run save its data to your repo's claude/data branch
+   without being blocked; it also means I won't ask before committing in this folder") and ask them to
+   paste this in the Terminal tab (or after `!` in the chat), from their finance folder:
+   ```bash
+   mkdir -p .claude && printf '%s\n' '{"permissions":{"allow":["Bash(git fetch origin claude/data)","Bash(git checkout -B claude/data origin/claude/data)","Bash(git add:*)","Bash(git commit:*)","Bash(git push origin claude/data)","Bash(git push -u origin claude/data)","Bash(python3 scripts/save_pull.py:*)","Bash(python3 scripts/sync.py:*)"]}}' > .claude/settings.json && git add .claude/settings.json && git commit -qm "Allow the daily routine to commit and push" && git push -q origin claude/data && echo done
+   ```
+   If they'd rather not, skip it: a blocked morning still republishes the dashboard, and the next
+   run's 21-day pull catches the data up.
 
 ## B. Let Claude's cloud see the repo
 github-setup already connected GitHub to Claude with **All repositories**, so the new repo is visible.
@@ -67,6 +80,8 @@ for local work: **run `git pull origin claude/data` before changing anything her
 
 ## Troubleshooting
 - "repository could not be found": claude.ai's GitHub link is a different GitHub account (B).
+- Run log shows `permission_denied ... Blocked by classifier` on `git commit`/`git push`: the repo has
+  no `.claude/settings.json` allowing them (A.4). Ask them to add it; never write it yourself.
 - Run shows no Era tools: the Era connector isn't attached to the routine, or needs reconnecting on
   claude.ai (Customize > Connectors).
 - Artifact publish refused: the routine must read the artifact before publishing (ROUTINE.md does).
