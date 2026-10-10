@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>__DASHBOARD_TITLE__</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
 <style>
@@ -31,6 +31,20 @@ h1{font-size:22px;margin:0 0 2px;font-weight:600}
 .tabs{display:flex;gap:6px;border-bottom:1px solid #e6e4dd;margin-bottom:20px;flex-wrap:wrap}
 .tab{padding:8px 14px;cursor:pointer;font-size:14px;color:#6a655c;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-top:none;border-left:none;border-right:none}
 .tab.active{color:#2f6f4e;border-bottom-color:#2f6f4e;font-weight:600}
+/* Phones: the tabs and every pill row (months, categories) are one line that scrolls sideways; the
+   edges fade where there's more to see (sx-l / sx-r, set by wireScrollRows). */
+@media(max-width:640px){
+  .wrap .tabs,.wrap .pills{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  .wrap .tabs::-webkit-scrollbar,.wrap .pills::-webkit-scrollbar{display:none}
+  .wrap .tabs .tab,.wrap .pills .pill{flex:none;white-space:nowrap}
+  .wrap .tabs{border-bottom:none;box-shadow:inset 0 -1px 0 #e6e4dd}
+  .wrap .tabs .tab{margin-bottom:0}
+  .sx-r{-webkit-mask-image:linear-gradient(to left,transparent 0,#000 32px);mask-image:linear-gradient(to left,transparent 0,#000 32px)}
+  .sx-l{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 32px);mask-image:linear-gradient(to right,transparent 0,#000 32px)}
+  .sx-l.sx-r{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 32px,#000 calc(100% - 32px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 32px,#000 calc(100% - 32px),transparent 100%)}
+}
+/* No pinch-zoom (zooming in let the whole page slide sideways on phones). */
+html{touch-action:pan-x pan-y}
 .panel{display:none}
 .panel.active{display:block}
 .card{background:#fff;border:1px solid #e6e4dd;border-radius:10px;padding:18px;margin-bottom:16px}
@@ -1354,10 +1368,31 @@ function wireTabs(){
   }});
 }
 document.addEventListener("dataChanged",function(){renderTrend();renderInsights()});
+// Phones: tabs and pill rows scroll sideways. Fade the edge that has more, and keep the picked item in view
+// (when it's picked, when its row is redrawn, and when its tab opens).
+function wireScrollRows(){
+  const rows=[document.querySelector(".tabs")].concat([].slice.call(document.querySelectorAll(".pills"))).filter(Boolean);
+  rows.forEach(el=>{
+    const fade=()=>{const max=el.scrollWidth-el.clientWidth;el.classList.toggle("sx-l",max>2&&el.scrollLeft>2);el.classList.toggle("sx-r",max>2&&el.scrollLeft<max-2)};
+    el._center=()=>{const a=el.querySelector(".active");if(a&&el.scrollWidth>el.clientWidth){const r=a.getBoundingClientRect(),e=el.getBoundingClientRect();el.scrollLeft+=(r.left+r.width/2)-(e.left+e.width/2)}fade()};
+    el.addEventListener("scroll",fade,{passive:true});
+    new MutationObserver(el._center).observe(el,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
+    el._center();
+  });
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>setTimeout(()=>rows.forEach(r=>r._center()),0)));
+  window.addEventListener("resize",()=>rows.forEach(r=>r._center()));
+}
+// No pinch-zoom on phones: zooming in let the page slide sideways. (iOS also zoomed into small inputs.)
+function noZoom(){
+  let m=document.querySelector('meta[name="viewport"]');
+  if(!m){m=document.createElement("meta");m.name="viewport";document.head.appendChild(m)}
+  m.setAttribute("content","width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"+(/viewport-fit/.test(m.getAttribute("content")||"")?", viewport-fit=cover":""));
+  ["gesturestart","gesturechange"].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+}
 (function(){
   var fns=[wireTabs,renderHeader,renderMonthPills,renderKPI,wireCardPicker,wireDebtPopover,renderMom,renderTransfers,renderBills,
     renderTxMonthPills,fillAccountFilter,renderTxTable,wireSortHeaders,wireFilters,wireNeedFilter,wireTableEdits,
-    wireTrendControls,renderTrendPills,renderTrend,renderBudget,renderAccounts,renderNetWorthChart,renderInsMonthPills,renderInsights,renderRecap,wireRecap,wireNewCategoryTip,wireNotes,pickStartTab];
+    wireTrendControls,renderTrendPills,renderTrend,renderBudget,renderAccounts,renderNetWorthChart,renderInsMonthPills,renderInsights,renderRecap,wireRecap,wireNewCategoryTip,wireNotes,pickStartTab,wireScrollRows,noZoom];
   fns.forEach(function(fn){try{fn()}catch(e){console.error("Init error in "+fn.name+":",e)}});
   connectDb();
 })();
