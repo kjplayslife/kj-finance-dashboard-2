@@ -1,16 +1,23 @@
 ---
 name: finance-setup-v2
-description: First-time setup for KJ Finance Dashboard 2.0. Walks the user step by step from "just installed" to a working personal finance dashboard (a private claude.ai page plus a local HTML backup), kept updated fully automatically (Era + a daily cloud routine on GitHub), or from bank CSV files only for people who don't want a bank connection. Runs only when you type its slash command.
+description: Builds the KJ Finance Dashboard 2.0 once Era and GitHub are ready (from /era-setup and /github-setup) - checks they're ready and fills any small gap, then creates the dashboard (a private claude.ai page plus a local HTML backup), brings in the year's history, publishes it, and sets up the daily cloud update. Also does a CSV-only dashboard for people who don't want a bank connection. Runs only when you type its slash command.
 disable-model-invocation: true
 ---
 
 # KJ Finance Dashboard 2.0: setup
 
-Take the person from nothing to a dashboard that looks and works like KJ's: Daily Recap, Overview,
-Transactions, Budget, Insights and Accounts tabs, published as a private claude.ai artifact (opens on
-their phone) with a local HTML backup. Go one step at a time, wait for them between steps, and keep
-each message short. Do the technical work yourself; only ask them for what they must do (sign-ups,
-signing in to their bank, choices).
+Setup is three commands, in this order: **/era-setup** (Era account, banks linked, Era connected to
+Claude), **/github-setup** (GitHub, the GitHub tools and connector, and KJ's setup checklist), then
+**this one**, which builds the dashboard. So by the time someone types /finance-setup-v2, Era and
+GitHub should already be ready. **Expect that, check it quietly, and don't walk them through it
+again.** Something can still be missing (a bank still syncing, a connector that only shows in a new
+session, `gh` signed out, or a step they skipped): find it in step 0 and fix just that piece.
+
+What they end up with looks and works like KJ's: Daily Recap, Overview, Transactions, Budget, Insights
+and Accounts tabs, published as a private claude.ai artifact (opens on their phone) with a local HTML
+backup, updated every morning by a cloud routine. Go one step at a time, wait for them between steps,
+and keep each message short. Do the technical work yourself; only ask them for what they must do
+(choices, the year-to-date downloads, signing in).
 
 ## Paths
 - Engine (copied into their folder): `E="${CLAUDE_PLUGIN_ROOT}/engine"`.
@@ -46,21 +53,34 @@ signing in to their bank, choices).
   `winget install GitHub.cli`; Git is already there because Claude Code on Windows needs it); paths
   are like `C:\Users\<name>\Documents\Finances`. The cloud routine itself runs the same for everyone.
 
-## 0. Era and GitHub ready? (before anything else)
-KJ's course sets up Era (account, every bank and card linked, the Era Context connector) and GitHub
-(`gh` signed in, the GitHub connector on Claude) **before** the dashboard is built. Check quietly:
-ToolSearch for "list_financial_accounts" (Era), and `gh auth status` (GitHub).
-- **Both there**: say nothing and go to step 1.
-- **Otherwise**: open with a one-line hello (what they're about to get, about 30-45 minutes, one step at
-  a time), then do the missing setup first, in this order: era-setup, then github-setup. Read
-  `${CLAUDE_PLUGIN_ROOT}/skills/era-setup/SKILL.md` (then `.../github-setup/SKILL.md`) and follow it
-  right here in this session (these skills only start from their slash command, so read the file
-  rather than trying to invoke them). They hold the walk-throughs;
-  don't repeat them here. When they finish, come back to step 1.
-- If era-setup ends with "start a new Code session" (the Era tools only show up in a new session), they
-  type "/finance-setup-v2" in the new session; nothing is lost, setup starts again at step 0 and moves on.
-(If they say up front they don't want a bank connection at all, skip this step: that's the CSV-only
-setup, step 4.)
+## 0. Ready check (quiet; Era and GitHub should already be done)
+Check, without narrating:
+1. **Era**: ToolSearch for "list_financial_accounts". If found, call `accounts__list_financial_accounts`
+   once (`include_hidden: true`) and keep the result: it's the account list for step 3.
+2. **GitHub**: `gh auth status` shows an active account.
+(The GitHub connector and Claude GitHub App can't be checked from here; github-setup's checklist
+covered them, and option-cloud.md B confirms them before the routine is made.)
+
+Then:
+- **Everything there**: one line ("Era and GitHub are ready, so let's build your dashboard") and go to
+  step 1. Don't recap the prep steps.
+- **A small gap**: fix only that piece, right here, using the matching step of the prep skill (read
+  `${CLAUDE_PLUGIN_ROOT}/skills/era-setup/SKILL.md` or `.../github-setup/SKILL.md`; those skills only
+  start from their slash command, so read the file instead of invoking them). Common ones:
+  - **Era connected on claude.ai but its tools aren't in this session**: connectors only show up in a
+    new session. Tell them: "Start a new Code session in this folder and type /finance-setup-v2 again;
+    nothing is lost." Then stop.
+  - **Era works but a bank or card is missing**: if they linked it under an hour ago, that's normal;
+    carry on and check again in step 6. Otherwise link it now (era-setup step 3).
+  - **Accounts come back `visibility: "tier_excluded"`**: past Era's free 2 accounts; they need the
+    Organize plan (era-setup step 2). They upgrade themselves; carry on meanwhile.
+  - **`gh` not signed in, or the wrong account**: github-setup step 3 (they run `gh auth login`).
+- **Era or GitHub not started at all** (they skipped the prep commands): say so in one line and ask
+  (AskUserQuestion): "Set it up here now (Recommended)" / "I'll run /era-setup and /github-setup first".
+  Here now: follow era-setup, then github-setup (just the steps not done yet), then come back to
+  step 1. Either way, don't make them repeat anything that's already done.
+- **They don't want a bank connection at all**: skip the Era and GitHub checks; that's the CSV-only
+  setup (step 4).
 If anything goes wrong anywhere in setup, check `references/where-people-get-stuck.md` first.
 
 ## 1. Quiet checks (say nothing unless something needs them)
@@ -83,7 +103,8 @@ If anything goes wrong anywhere in setup, check `references/where-people-get-stu
    `winget install Python.Python.3.12`, then open a new session.
 
 Then (unless you already said hello in step 0) greet them in one or two lines (what they're about to
-get, roughly 30-45 minutes, you'll go one step at a time) and go straight to the first question.
+get, about 20-30 minutes now that Era and GitHub are done, most of it the year-to-date downloads in
+step 6) and go straight to the first question.
 
 ## 2. Personal, business or both
 AskUserQuestion: **"Is this dashboard for your personal money, a business, or both?"**
@@ -91,52 +112,40 @@ Options: Personal / Business / Both (one dashboard for each).
 - **Both**: in the same call or right after, ask **"Which one should we set up first?"** (Personal
   (Recommended) / Business). Tell them the other one comes right after this one finishes, in its own
   folder, and goes much faster because Era, GitHub and the phone app are already done. Note the choice
-  in FINANCE.md so you remember to offer it at the end.
+  in FINANCE.md so you remember to offer it at the end. (One Era login holds both sets of accounts.)
 - Then one plain question for the title: personal: their first name ("Sam's Finances"); business: the
   business name ("Acme Studio Finances").
 
-## 3. Banks and cards (for the dashboard you're setting up now)
-One AskUserQuestion call with two questions:
-1. **"Which banks do you use for <your personal money / the business>?"** (multiSelect): offer the
-   four most common (Chase, Bank of America, Wells Fargo, Capital One); they pick "Other" to type the
-   rest (Ally, a credit union, ...). Include the banks behind their credit cards too.
-2. **"How many credit cards do you use for <it>?"** Options: None / 1 / 2-3 / 4 or more.
-Keep the answers: they're your checklist for linking in Era, for the year-to-date CSVs, and for the Era
-cost. Right after they answer, tell them plainly how many accounts that comes to (each checking, savings
-and credit card counts as one) and that **linking more than 2 accounts in Era costs about $9 a month**
-(Era's **Organize** plan, up to 15 accounts; 2 or fewer is free; confirm the price on era.app).
+## 3. Which accounts go on this dashboard
+Their banks are already linked in Era, so don't ask which banks they use. Show the accounts from step 0
+as a short list (name, bank, type; no balances) and ask one AskUserQuestion:
+- **Only one dashboard** (personal or business): **"Are these all the accounts for this dashboard?"**
+  ("Yes, that's everything (Recommended)" / "One is missing" / "Leave some out").
+- **"Both"**: **"Which of these are for <your personal money / the business>?"** (multiSelect, one
+  option per account; if there are more than four, ask by bank, or list them and let them type the
+  names under "Other").
+Then: anything to leave out goes in `era.exclude_accounts` (or, with "Both", put this dashboard's keys
+in `era.only_accounts`; `references/era.md` D.1) when the folder exists in step 5b. A missing one:
+recently linked, wait (step 6 checks again); otherwise link it now (era-setup step 3).
+Keep the list: it's your checklist for the year-to-date CSVs in step 6. Era's cost was covered in
+era-setup; bring it up only if accounts come back `tier_excluded` (step 0).
 
 ## 4. How it will work (fully automatic)
-Everyone sets up the **fully automatic** version (`--option cloud`); that's what makes this dashboard
-worth having. In a few short lines (no menu):
-- **Era** reads their bank accounts (read-only), so nothing has to be downloaded by hand.
-- A **Claude routine in the cloud** updates the dashboard every morning, even with their computer off,
-  and sends a phone notification with a link to it.
-- A free **GitHub** account keeps their finance folder private and reachable by the routine; you do the
-  GitHub steps, they just sign in.
-- Cost: **Claude Pro ($20/month) or higher** (Max, Team, Enterprise). Era is free for up to 2 linked
-  accounts; more than 2 needs Era's **Organize** plan (about $9/month; confirm on era.app). From their answers in step 3, say how
-  many accounts that is and whether it means the paid Era plan.
-Then AskUserQuestion: **"Ready to set it up this way?"** Options: "Yes, let's go (Recommended)" /
-"I'd rather not connect my bank". If they're on the free Claude plan, they can upgrade at
-claude.ai/settings first.
+Era and GitHub being ready means they're set for the **fully automatic** version (`--option cloud`).
+Don't ask them to choose again or re-sell it; just say in two or three lines what happens from here:
+you build the dashboard and bring in this year's history, publish it to their Claude account, then set
+up the routine that updates it **every morning in the cloud** (even with their computer off) and sends a
+phone notification with a link to it.
 
-**Only if they don't want it** (no bank connection, no GitHub, no cloud, no Era cost): offer the
-**CSV-only** version (`--option csv`, `references/option-csv.md`). Nothing connects to their bank; each
-update they download a CSV from each account and drop it in. The most private and the most manual, with
-no automatic morning updates.
-
-**If they hesitate about GitHub or the cloud, make the case for it first; don't switch on the first
-"hmm".** In plain words: the cloud version runs every morning even when their computer is off or asleep,
-sends the phone notification with the link, and needs nothing from them day to day. Running from their
-computer only works while it's on, awake and the Claude app is open, so updates get missed. GitHub is
-free and the repo is private (only they can see it), and you do the GitHub steps for them; they only
-sign in. Answer their actual worry (privacy, another account, "I don't code") and ask again.
-
-**Only if they still insist on running it from their computer:** set up "Era from this computer"
-(`--option local`, `references/option-local.md`). That's when you explain its limits and the Claude
-app's **keep awake** setting (option-local.md), and remind them they can move to the cloud version any
-time ("set up the automatic version"); everything carries over.
+Other versions, only when they come up:
+- **They don't want a bank connection** (said in step 0, or now): the **CSV-only** version
+  (`--option csv`, `references/option-csv.md`). Nothing connects to their bank; each update they download
+  a CSV from each account and drop it in. The most private and the most manual, no automatic updates.
+- **Era is ready but they've decided against GitHub/the cloud**: first answer their actual worry in a few
+  plain words (the repo is private; you do the GitHub steps; the cloud run works with their computer off
+  and needs nothing from them day to day). Only if they still insist: "Era from this computer"
+  (`--option local`, `references/option-local.md`), with its limits and the Claude app's **keep awake**
+  setting; they can move to the cloud version any time ("set up the automatic version").
 
 ## 5. Monthly set-asides
 First explain in two lines: the Overview shows what to move each month from last month's income, worked
@@ -169,16 +178,16 @@ dashboard/template.html, data/category-rules.json, and writes data/config.json a
 `era.only_accounts` to that dashboard's own account keys (see `references/era.md`), so business accounts
 never show up on the personal dashboard or the other way round.
 Right away, start `FINANCE.md` with their answers so far (personal or business, "Both" and which comes
-next, banks, number of cards, set-asides); if the session restarts, step 1 picks up from it. Step 10
+next, which Era accounts belong to this dashboard, set-asides); write step 3's `exclude_accounts` /
+`only_accounts` into data/config.json now; if the session restarts, step 1 picks up from it. Step 10
 fills in the rest.
 
 ## 6. Connect the data
-- Fully automatic (and "Era from this computer"): Era is already connected and their banks linked
-  (step 0, era-setup). Call `accounts__list_financial_accounts` and compare with their bank list from
-  step 3. Anything missing: link it now as in era-setup step 3 (white **Connect** > **Link with MX**;
-  **Stripe** if MX doesn't work for that bank; it can take **15 minutes to 1 hour** to show up, so keep
-  going and check again later). Then the first full pull (era.md D), and `references/option-cloud.md`
-  in step 9.
+- Fully automatic (and "Era from this computer"): Era is connected and their banks are linked
+  (era-setup, checked in step 0). If an account was still syncing in step 3, call
+  `accounts__list_financial_accounts` again and see if it's there now; if it still isn't after an hour,
+  link it again (era-setup step 3: white **Connect** > **Link with MX**; **Stripe** if MX doesn't work).
+  Then the first full pull (era.md D), and `references/option-cloud.md` in step 9.
   **Before the first pull, explain history** in a few plain lines: **Era can only pull about the last
   1 to 3 months** of transactions, plus everything from now on. To have **all of this year** in the
   dashboard, they download a **year-to-date CSV** (Jan 1 to today) from **every** bank account and card
@@ -237,5 +246,5 @@ Then, in one line: each tab ends with a short Bible verse; if they'd rather not 
 "turn off the verses" any time.
 **If they chose "Both" in step 2**, offer to set up the other dashboard now: they make a new folder
 (e.g. `~/Documents/Business Finances`), open a new Code session in it and type "/finance-setup-v2". Era,
-GitHub and the phone app are already done, so it's mostly linking that dashboard's accounts, the
+GitHub and the phone app are already done, so it's mostly picking that dashboard's accounts, the
 year-to-date CSVs, and its own routine.

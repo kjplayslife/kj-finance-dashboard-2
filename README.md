@@ -75,8 +75,8 @@ Three steps, in this order. Each one walks you through it and checks it worked.
    Claude, and a final checklist that tells you when you're ready.
 3. **/finance-setup-v2**: builds your dashboard. Make an empty folder for your finances (for example
    `Documents/Finances`), open the **Code** tab, start a new session in that folder and type
-   **/finance-setup-v2**. Claude walks you through each step, builds the dashboard and checks it
-   with you. When it asks for permission to run something, approve it.
+   **/finance-setup-v2**. It checks that Era and GitHub are ready (and helps with anything still
+   missing), then builds the dashboard with you step by step. When it asks for permission to run something, approve it.
    At the end, **pin your dashboard** in the claude.ai sidebar and open it once on your phone.
 
 ## Use
