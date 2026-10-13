@@ -83,8 +83,11 @@ Three steps, in this order. Each one walks you through it and checks it worked.
 - **/era-setup** and **/github-setup**: run again any time to check Era or GitHub, link another bank,
   or fix "repository could not be found".
 - **/update-finances-v2**: fresh numbers right now (it also happens by itself every morning).
-- **/finance-customize-v2**: budgets, categories, set-aside percentages, account names, the title, the Bible
-  verse footers, or updating to a newer version of the dashboard.
+- **/finance-customize-v2**: change anything. Start a new chat in the Code tab, type
+  `/finance-customize-v2` and what you want, in your own words ("make my Dining Out budget $400",
+  "put Chewy in a new Pets category", "turn off the verses", "make the numbers bigger on my phone").
+  Claude finds your finance folder, makes the change, checks it and publishes it. Keep asking for more
+  in the same chat. It also updates your dashboard to a newer plugin version.
 - Or just ask Claude about your money in that folder.
 
 The plugin's skills only run when you type their slash command, so chatting with Claude never starts a
