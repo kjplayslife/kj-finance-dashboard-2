@@ -95,7 +95,11 @@ files, scripts or publishing; that's all you.
   `categories` (before "Card Payments"), a budget, `need_defaults` if obvious, and rules for the
   merchants that belong in it (ask which; look at their transactions in data/finance-data.json for
   candidates). It gets a color automatically. Rows they already re-categorized in the dashboard keep
-  their choice.
+  their choice. A category with no spending is hidden from Spending by month and the Budget tab until it
+  has spending or a budget, so give a brand-new one a budget if they want to see it right away.
+- **Clean up categories** ("I don't use half of these"): `python3 scripts/category_report.py` shows
+  what they actually spend on, the empty categories and the unsorted merchants; propose a list and apply
+  it as in finance-setup-v2 step 7.
 - **Rename or remove a category**: update `categories`, `budgets`, `need_defaults`, and every rule using
   it (removed -> point those rules at another category).
 - **"Put <store> in <category>" / "that's not income, it's my own transfer"**: add a rule at the top of

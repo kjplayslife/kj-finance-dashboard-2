@@ -555,6 +555,8 @@ function ownerPay(m){let s=0;monthTx(m).forEach(t=>{if(getCat(t)==="Owner's Pay"
 function spend(m){let s=0;monthTx(m).forEach(t=>{const c=getCat(t);if(!NON_SPEND[c]&&t.amount<0)s+=-t.amount});return s}
 const CARDS=FIN.accounts.filter(a=>a.type==="CreditCard");
 function spendByCat(m){const o={};monthTx(m).forEach(t=>{const c=getCat(t);if(!NON_SPEND[c]&&t.amount<0)o[c]=(o[c]||0)+(-t.amount)});return o}
+// Spending categories that actually have spending in the data (empty ones would be blank buttons and rows).
+function usedSpendCats(){const u=SPEND_CATS.filter(c=>MONTHS.some(m=>(spendByCat(m)[c]||0)>0));return u.length?u:SPEND_CATS.slice()}
 
 function renderHeader(){
   const yrs=[...YEARS];
@@ -989,8 +991,9 @@ function syncPartialBox(){
   document.getElementById("hide-partial").checked=partialShown();
 }
 function renderTrendPills(){
+  const shown=usedSpendCats();if(shown.indexOf(trendCat)<0)trendCat=shown.indexOf("Subscriptions")>=0?"Subscriptions":shown[0];
   const c=document.getElementById("trend-pills");c.innerHTML="";c.style.display=tView==="cat"?"":"none";
-  SPEND_CATS.forEach(cat=>{const b=document.createElement("button");b.className="pill cat-pill"+(cat===trendCat?" active":"");b.style.setProperty("--c",CAT_COLORS[cat]||"#3c6c8a");b.textContent=cat;b.onclick=()=>{trendCat=cat;lsSet(LS.trend,cat);renderTrendPills();renderTrend()};c.appendChild(b)});
+  shown.forEach(cat=>{const b=document.createElement("button");b.className="pill cat-pill"+(cat===trendCat?" active":"");b.style.setProperty("--c",CAT_COLORS[cat]||"#3c6c8a");b.textContent=cat;b.onclick=()=>{trendCat=cat;lsSet(LS.trend,cat);renderTrendPills();renderTrend()};c.appendChild(b)});
 }
 function wireTrendControls(){
   const sync=()=>document.querySelectorAll("#tchart-view button").forEach(b=>b.classList.toggle("on",b.getAttribute("data-v")===tView));
@@ -1047,7 +1050,8 @@ function renderTrend(){
 
 // ---------- Budget ----------
 function renderBudget(){
-  const cats=SPEND_CATS.slice();const n=FULL.length||1;
+  // Categories with spending, plus any with a budget (so a new category's budget can be set here).
+  const used=usedSpendCats();const cats=SPEND_CATS.filter(c=>used.indexOf(c)>=0||budgets[c]>0);const n=FULL.length||1;
   let ok=0,watch=0,over=0;
   const perCatMonth={};cats.forEach(c=>{perCatMonth[c]=MONTHS.map(m=>spendByCat(m)[c]||0)});
   const isP=MONTHS.map(m=>m===PARTIAL);

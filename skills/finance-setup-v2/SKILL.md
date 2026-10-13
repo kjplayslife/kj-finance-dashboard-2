@@ -202,19 +202,50 @@ fills in the rest.
 Finish this step with `python3 scripts/sync.py` succeeding. Show them the month totals it prints and ask
 if they look about right.
 
-## 7. Make it theirs
+## 7. Fit the categories to them (the first thing you work on together)
+The folder starts with a generic personal list (Groceries, Dining Out, Shopping, Rent and Utilities,
+Gas & Auto, ...). Most people, and every business, have categories in it they never use and spending it
+doesn't fit. Empty categories make a brand-new dashboard look broken, so **before anything is published,
+build their category list from their own transactions, with them**. Don't skip this or leave it for later.
+1. `python3 scripts/category_report.py`: each category's purchases and total, the categories with **no
+   spending at all**, the biggest **unsorted merchants** (in Other or no rule matched), and money in.
+2. Propose their list in one short message, plain words, no file names:
+   - **Keep**: categories with real spending (with the total, e.g. "Software & Tools, $2,340").
+   - **Remove**: every category with no spending (say which).
+   - **New**: categories their unsorted merchants clearly form. Business examples: Software & Tools,
+     Contractors, Advertising, Travel, Equipment, Payment Fees, Payroll. Personal: Pets, Kids, Health,
+     Travel, Gifts. Name the merchants that would go in each.
+   - **Rename** anything that reads better for them (business: "Rent and Utilities" -> "Office & Rent").
+   Aim for roughly 6-12 spending categories; "Other" stays as the catch-all.
+3. AskUserQuestion: **"Use these categories?"** ("Yes, looks right (Recommended)" / "I want to change
+   some"). Changes: ask what, one or two questions at a time.
+4. Apply it:
+   - `categories` in data/config.json: their list, plus the ones the engine needs that aren't spending:
+     **Income, Card Payments, Transfers, Reimbursed, Gift** (and **Owner's Pay** on a business
+     dashboard; **Tithe** if they set a tithe goal). Order = dropdown order; put Card Payments and the
+     non-spending ones last.
+   - Removed or renamed categories: take them out of `budgets` and `need_defaults`, and fix every rule in
+     data/category-rules.json that points at them (to the new name, or the category those merchants
+     really belong in) so nothing lands in a category that no longer exists.
+   - New categories: add rules at the TOP of data/category-rules.json for their merchants
+     (`{"match": "REGEX", "category": "...", "display": "Clean Name"}`; `"when": "in"|"out"` for money
+     in/out), and `need_defaults` if obvious (3 Need for business costs like Software & Tools).
+5. Then the rest of the unsorted rows: group by merchant, propose a category for the frequent ones, and
+   ask about anything ambiguous (Venmo, Zelle, checks, transfers between their own accounts, where
+   income comes from). Income that's really a transfer from their own other account is `Transfers`.
+6. `python3 scripts/sync.py`, then `category_report.py` again: **no category without spending** (unless
+   they asked to keep one for the future; give it a budget so it shows) and only a little left in Other.
+   Show them the final list with totals.
+
+## 7b. Account names and budgets
 1. **Account names**: Era names accounts like "CREDIT CARD-1234". Offer short names ("Chase Card") and
    save them under `era.account_labels` in data/config.json (key = account_group_key from the accounts
    list). CSV accounts already have the names they gave.
-2. **Categories**: sync.py lists rows no rule matched. Group them by merchant, propose a category for the
-   frequent ones, and add rules at the TOP of data/category-rules.json (`{"match": "REGEX", "category":
-   "...", "display": "Clean Name"}`; `"when": "in"|"out"` for money in/out). Ask about anything
-   ambiguous (Venmo, Zelle, checks, transfers between their own accounts, where income comes from).
-   Income that's really a transfer from their own other account should be `Transfers`.
-3. **Budgets**: `python3 scripts/suggest_budgets.py`, show the table (their own monthly averages rounded
-   up), adjust anything they want, then `python3 scripts/suggest_budgets.py --write` (and edit
+2. **Budgets** (after the categories are final, so there's one for each real category):
+   `python3 scripts/suggest_budgets.py`, show the table (their own monthly averages rounded up), adjust
+   anything they want, then `python3 scripts/suggest_budgets.py --write --all` (and edit
    data/config.json budgets for their changes).
-4. `python3 scripts/sync.py` again.
+3. `python3 scripts/sync.py` again.
 
 ## 8. Publish and verify
 Follow `references/publish-and-verify.md`: publish the private artifact with its database, save the URL
