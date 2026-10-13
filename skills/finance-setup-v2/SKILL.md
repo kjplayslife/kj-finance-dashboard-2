@@ -40,7 +40,8 @@ and keep each message short. Do the technical work yourself; only ask them for w
   a bank it hands off to the bank's site or app, which works best there. Open each link in their
   default browser for them: `open "<url>"` on a Mac, `cmd.exe /c start "" "<url>"` on Windows (or just
   give them the link). Then ask them to tell you when each step is done; if they get stuck, ask what
-  they see (or a screenshot). Use the built-in browser pane only for checking the dashboard itself.
+  they see (or a screenshot). Use the built-in browser pane only for checking the dashboard itself, and
+  close it before you publish (one panel open for them at a time; publish-and-verify.md).
 - **They type their own passwords.** Never type passwords, bank logins, card numbers or codes for them,
   never read them aloud from the screen, and never ask for them in chat. When a login page is up, hand
   over: "Sign in there; tell me when you're in."
@@ -248,9 +249,10 @@ build their category list from their own transactions, with them**. Don't skip t
 3. `python3 scripts/sync.py` again.
 
 ## 8. Publish and verify
-Follow `references/publish-and-verify.md`: publish the private artifact with its database, save the URL
-in data/config.json, open the local backup in the browser pane, check desktop and phone widths, and walk
-them through the tabs. Every setup ends with them **pinning the dashboard** in the claude.ai sidebar and
+Follow `references/publish-and-verify.md`: check the local backup quietly in the browser pane (desktop
+and phone widths), **close the browser pane**, then publish the private artifact with its database (it
+opens in the app by itself; that's the only thing they should see), save the URL in data/config.json,
+and walk them through the tabs in the panel that opened. Every setup ends with them **pinning the dashboard** in the claude.ai sidebar and
 **installing the Claude phone app** (signed in, notifications on), so it's one tap away on their phone.
 
 ## 9. Keep it updated

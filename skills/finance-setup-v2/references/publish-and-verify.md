@@ -6,6 +6,30 @@ sync.py builds two files every time:
 - `dashboard/artifact.html`: the same page for publishing as a private claude.ai **artifact**, which
   opens on their phone and desktop, and saves their ratings and category changes in its own database.
 
+## One window for them: the dashboard itself
+They're in the Claude desktop app, and two panels opening at once (the in-app browser with the local
+file, and the published dashboard) is confusing for someone new. So:
+- **Check first, quietly, then close the browser.** Do your own check in the browser pane (below),
+  and when you're done close it: `mcp__Claude_Browser__resize_window` preset "desktop", then
+  `mcp__Claude_Browser__tabs_context` and `mcp__Claude_Browser__tabs_close` on every tab (closing the
+  last tab closes the pane). Don't mention the pane or the local file to them.
+- **Then publish.** Publishing opens the dashboard in the app by itself; that's the one thing they see.
+  Don't also call the Artifact tool's `open`, don't `open "<url>"` in their own browser, and don't
+  send them the local file. Point them at the panel that just opened ("your dashboard just opened on
+  the right"), and give the link once for later.
+- If the browser pane is already open for something else (they asked to see a site), leave it.
+
+## Check it before publishing (quietly)
+1. Open the local backup in the browser pane (`mcp__Claude_Browser__navigate` to the file:// path) and
+   take a screenshot. Then check phone width (`resize_window` preset "mobile", screenshot, back to
+   "desktop"). Look for: the header with their title and "Synced"/"Updated" time, numbers in the Overview
+   cards, the month-over-month chart, the transfers tiles they chose (or none), bills if any, every tab
+   rendering, and no console errors (`read_console_messages` with onlyErrors).
+   - The pane shows local files as a `data:` page, so saving there is off; that's expected.
+   - Charts animate; wait a second before screenshots.
+2. Compare the Overview month totals with what sync.py printed.
+3. Fix anything wrong, rebuild, check again. Then **close the browser pane** (above) and publish.
+
 ## First publish
 1. If an `artifact-capabilities` skill is available, load it first (it covers the `db` capability).
 2. Publish with the Artifact tool: `file_path` = the absolute path of `dashboard/artifact.html`,
@@ -28,20 +52,12 @@ sync.py builds two files every time:
   `db` declaration carries forward; passing `{}` would wipe it), and no `icon`.
 - Their edits live in the artifact's database and survive every republish. Never write to it.
 
-## Check it (do this before calling setup done)
-1. Open the local backup in the browser pane (`mcp__Claude_Browser__navigate` to the file:// path) and
-   take a screenshot. Then check phone width (`resize_window` preset "mobile", screenshot, back to
-   "desktop"). Look for: the header with their title and "Synced"/"Updated" time, numbers in the Overview
-   cards, the month-over-month chart, the transfers tiles they chose (or none), bills if any, every tab
-   rendering, and no console errors (`read_console_messages` with onlyErrors).
-   - The pane shows local files as a `data:` page, so saving there is off; that's expected.
-   - Charts animate; wait a second before screenshots.
-2. Compare the Overview month totals with what sync.py printed.
-3. Ask them to open the artifact link (on their phone too) and rate one transaction in the Daily Recap
+## After publishing: try it together
+1. In the dashboard panel that just opened (and on their phone too), ask them to rate one transaction in the Daily Recap
    (tap 1, 2 or 3). If the `ArtifactData` tool is available, confirm it saved: `list` on collection
    `edits` for that artifact URL. If a red "Couldn't save your last change" note appears, republish
    once with the capabilities above.
-4. Walk them through the tabs in two or three lines each, in plain words:
+2. Walk them through the tabs in two or three lines each, in plain words:
    - **Daily Recap**: what's new since they last pressed "Done for today"; rate each purchase 1 Want,
      2 Could skip, 3 Need, fix categories; bills due this week.
    - **Overview**: the month's income, spending, net, card debt, savings; tap a card to chart it; the

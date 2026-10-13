@@ -77,9 +77,10 @@ files, scripts or publishing; that's all you.
 3. **Check it** in the browser pane: open the local backup (`file://` path), go to the part that
    changed, screenshot at desktop width, then phone width (`resize_window` preset "mobile", then back to
    "desktop"), and `read_console_messages` with onlyErrors. Charts animate; wait a second. (Saving is
-   off in the pane's local copy; that's expected.)
+   off in the pane's local copy; that's expected.) Then **close the browser pane** (`tabs_context`, then
+   `tabs_close` every tab) so they're never looking at two copies; don't mention the local file.
 4. **Publish**: Artifact tool, `file_path` = absolute path of `dashboard/artifact.html`, `url` =
-   `artifact_url`. Cloud setups: `read` the artifact first (the routine republishes daily; a publish
+   `artifact_url`. The dashboard panel shows the new version; don't also open it in a browser. Cloud setups: `read` the artifact first (the routine republishes daily; a publish
    without a fresh read is refused). **Never pass `capabilities`** (the saved-edits database carries
    forward; `{}` would cut it off) and no `icon`.
 5. **Save it**: cloud setups commit and push (`git add -A && git commit -qm "<what changed>" && git push -q origin claude/data`)
