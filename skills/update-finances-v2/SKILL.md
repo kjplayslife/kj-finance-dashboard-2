@@ -12,7 +12,9 @@ Work in the finance folder (the one with `data/config.json`). If this session is
 
 Read `data/config.json` first: `setup_option` decides the path, `artifact_url` is where to publish.
 If its `plugin_version` is older than the plugin's (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`),
-mention once that `/finance-customize-v2` can update the dashboard to the newest version.
+mention once that `/customize-fin-dashboard` can update the dashboard to the newest version.
+If FINANCE.md or CLAUDE.md still say `/finance-customize-v2` (its old name), change them to
+`/customize-fin-dashboard`.
 
 ## Option "cloud" (fully automatic)
 The routine already updates every morning. Here:

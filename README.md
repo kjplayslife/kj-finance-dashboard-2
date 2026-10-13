@@ -44,7 +44,7 @@ Plan on 30 to 45 minutes, most of it sign-ups and signing in to your banks.
 
 ## Before you set up
 - **Turn off any older KJ finance plugin** (anything before 2.0) in Customize > Plugins. If it's still
-  on, Claude can pick up one of its old skills and mix the two versions. Every 2.0 skill ends in "-v2", plus the two setup helpers /era-setup and /github-setup.
+  on, Claude can pick up one of its old skills and mix the two versions. The 2.0 commands are /era-setup, /github-setup, /finance-setup-v2, /update-finances-v2 and /customize-fin-dashboard.
 - **Your full year of history:** Era can only pull about the last 1 to 3 months of transactions, plus
   everything from then on. To have **all of this year** in your dashboard, you'll download a
   year-to-date CSV (Jan 1 to today) from every bank account and card **once**, during setup. Claude
@@ -83,8 +83,8 @@ Three steps, in this order. Each one walks you through it and checks it worked.
 - **/era-setup** and **/github-setup**: run again any time to check Era or GitHub, link another bank,
   or fix "repository could not be found".
 - **/update-finances-v2**: fresh numbers right now (it also happens by itself every morning).
-- **/finance-customize-v2**: change anything. Start a new chat in the Code tab, type
-  `/finance-customize-v2` and what you want, in your own words ("make my Dining Out budget $400",
+- **/customize-fin-dashboard**: change anything. Start a new chat in the Code tab, type
+  `/customize-fin-dashboard` and what you want, in your own words ("make my Dining Out budget $400",
   "put Chewy in a new Pets category", "turn off the verses", "make the numbers bigger on my phone").
   Claude finds your finance folder, makes the change, checks it and publishes it. Keep asking for more
   in the same chat. It also updates your dashboard to a newer plugin version.

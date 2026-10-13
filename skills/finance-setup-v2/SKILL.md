@@ -87,7 +87,7 @@ If anything goes wrong anywhere in setup, check `references/where-people-get-stu
 1. **Folder**: `pwd`, `ls -A`. The dashboard lives in its own folder. If this folder isn't empty and isn't
    meant for this, suggest a new one such as `~/Documents/Finances` and ask them to open a new Code
    session in it and type "/finance-setup-v2" again. If `data/config.json` already exists: with an
-   `artifact_url` in it, this folder is already set up (tell them to type `/finance-customize-v2` or
+   `artifact_url` in it, this folder is already set up (tell them to type `/customize-fin-dashboard` or
    `/update-finances-v2` instead); without one, setup was interrupted (often the new session after adding
    Era): read FINANCE.md if it exists, and pick up where it left off (usually step 6) without asking the
    step 2-5 questions again.
@@ -231,17 +231,17 @@ them through the tabs. Every setup ends with them **pinning the dashboard** in t
 
 ## 10. Leave notes for future chats
 Write `FINANCE.md` in their folder (short): which option, the artifact URL, accounts and where each comes
-from, their goals, how to update ("/update-finances-v2"), how to change things ("/finance-customize-v2"), and
+from, their goals, how to update ("/update-finances-v2"), how to change things ("/customize-fin-dashboard"), and
 anything decided during setup (rules added, accounts excluded, routine id and time).
 Write a two-line `CLAUDE.md`: "This folder is a KJ Finance Dashboard 2.0 finance folder. Read FINANCE.md
-first. To update or change the dashboard, type /update-finances-v2 or /finance-customize-v2 (the
+first. To update or change the dashboard, type /update-finances-v2 or /customize-fin-dashboard (the
 plugin's skills only run from their slash commands)."
 For the fully automatic setup, commit and push these (see option-cloud.md).
 
 ## 11. Wrap up
 Tell them, in a few lines: where the dashboard is (artifact link; local backup file name), how it updates
 for their option, that ratings and category changes they make in the dashboard save to the dashboard,
-and the three commands: "/update-finances-v2", "/finance-customize-v2", and asking you anything about their money.
+and the three commands: "/update-finances-v2", "/customize-fin-dashboard", and asking you anything about their money.
 Then, in one line: each tab ends with a short Bible verse; if they'd rather not have them, they can say
 "turn off the verses" any time.
 **If they chose "Both" in step 2**, offer to set up the other dashboard now: they make a new folder

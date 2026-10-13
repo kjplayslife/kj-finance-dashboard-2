@@ -1,6 +1,6 @@
 ---
-name: finance-customize-v2
-description: Change anything about your KJ Finance Dashboard 2.0 in plain words - start a new chat, type /finance-customize-v2 and what you want ("make Dining Out's budget $400", "add a Pets category", "turn off the verses", "make the Overview numbers bigger"). Claude finds your finance folder, makes the change, checks it on desktop and phone, publishes it, and you can keep asking for more in the same chat. Runs only when you type its slash command.
+name: customize-fin-dashboard
+description: Change anything about your KJ Finance Dashboard 2.0 in plain words - start a new chat, type /customize-fin-dashboard and what you want ("make Dining Out's budget $400", "add a Pets category", "turn off the verses", "make the Overview numbers bigger"). Claude finds your finance folder, makes the change, checks it on desktop and phone, publishes it, and you can keep asking for more in the same chat. Runs only when you type its slash command.
 argument-hint: what you want changed (e.g. "add a Pets category for Chewy")
 disable-model-invocation: true
 ---
@@ -24,6 +24,8 @@ files, scripts or publishing; that's all you.
    - Not in this session's folder: work there with `cd "<folder>" && ...` in every command, and at the
      end mention once that next time they can start the chat in that folder.
 2. **Read** `FINANCE.md` (their setup, accounts, decisions, any design changes) and `data/config.json`.
+   If FINANCE.md or CLAUDE.md still say `/finance-customize-v2` (this command's old name), change them to
+   `/customize-fin-dashboard`.
 3. **Cloud setup** (`setup_option: "cloud"`): `git pull -q origin claude/data` first. The morning
    routine commits every day; working on old files would undo its data.
 4. **Then answer.** If they said what they want, do it (step 3 below). If not (or it's unclear), ask

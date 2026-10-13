@@ -76,7 +76,7 @@ morning ("3 new transactions to review (2 purchases, $84.10). October so far: ..
 ## E. Record it
 In FINANCE.md: repo URL, branch `claude/data`, routine name, id and time (local and UTC), and the rule
 for local work: **run `git pull origin claude/data` before changing anything here, and push after**
-(the routine commits every morning). The finance-customize-v2 and update-finances-v2 skills do this.
+(the routine commits every morning). The customize-fin-dashboard and update-finances-v2 skills do this.
 
 ## Troubleshooting
 - "repository could not be found": claude.ai's GitHub link is a different GitHub account (B).
