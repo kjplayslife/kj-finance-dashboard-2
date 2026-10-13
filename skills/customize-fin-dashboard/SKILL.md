@@ -145,3 +145,6 @@ files, scripts or publishing; that's all you.
 - Never write to the artifact's database, and never delete their data/raw files or dashboard edits.
 - Plain words with them: no file names or commands unless they ask. One or two questions at a time
   (AskUserQuestion, recommended option first).
+- Never ask them to approve something they can't see: when a question is about a list (categories,
+  budgets, rules you're about to add), put the full list in the first option's `preview` and in your
+  message just before it.

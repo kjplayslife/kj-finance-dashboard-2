@@ -33,6 +33,11 @@ and keep each message short. Do the technical work yourself; only ask them for w
   Keep each message to a few short lines, then wait for their answer.
 - **Do the technical work yourself**, quietly. Only bring them in for choices, sign-ups and signing in.
   Don't narrate commands, file names or checks unless something needs their attention.
+- **Never ask them to approve something they can't see.** Whenever a question is about a list (their
+  categories, their accounts, budgets), the full list goes **inside the question**: in the `preview` of
+  the first (recommended) option, which shows as soon as the question opens, as a short markdown list.
+  Also write the same list in your message just before the question. A one-line summary ("I renamed a
+  few and dropped the empty ones") is not enough; the question box covers the chat.
 
 ## Ground rules (follow throughout; mention only when they come up)
 - **Sign-ups and bank logins happen in their own browser** (Chrome, Safari, whatever they normally use),
@@ -119,7 +124,8 @@ Options: Personal / Business / Both (one dashboard for each).
 
 ## 3. Which accounts go on this dashboard
 Their banks are already linked in Era, so don't ask which banks they use. Show the accounts from step 0
-as a short list (name, bank, type; no balances) and ask one AskUserQuestion:
+as a short list (name, bank, type; no balances), in your message and in the first option's `preview`,
+and ask one AskUserQuestion:
 - **Only one dashboard** (personal or business): **"Are these all the accounts for this dashboard?"**
   ("Yes, that's everything (Recommended)" / "One is missing" / "Leave some out").
 - **"Both"**: **"Which of these are for <your personal money / the business>?"** (multiSelect, one
@@ -210,7 +216,7 @@ doesn't fit. Empty categories make a brand-new dashboard look broken, so **befor
 build their category list from their own transactions, with them**. Don't skip this or leave it for later.
 1. `python3 scripts/category_report.py`: each category's purchases and total, the categories with **no
    spending at all**, the biggest **unsorted merchants** (in Other or no rule matched), and money in.
-2. Propose their list in one short message, plain words, no file names:
+2. Propose their list as an actual list they can read, plain words, no file names:
    - **Keep**: categories with real spending (with the total, e.g. "Software & Tools, $2,340").
    - **Remove**: every category with no spending (say which).
    - **New**: categories their unsorted merchants clearly form. Business examples: Software & Tools,
@@ -218,8 +224,20 @@ build their category list from their own transactions, with them**. Don't skip t
      Travel, Gifts. Name the merchants that would go in each.
    - **Rename** anything that reads better for them (business: "Rent and Utilities" -> "Office & Rent").
    Aim for roughly 6-12 spending categories; "Other" stays as the catch-all.
-3. AskUserQuestion: **"Use these categories?"** ("Yes, looks right (Recommended)" / "I want to change
-   some"). Changes: ask what, one or two questions at a time.
+3. Write that list in your message, then AskUserQuestion: **"Use these categories?"**, with the full
+   list in the first option's `preview`, e.g.
+   ```
+   Keep
+   - Software & Tools: $2,340 (Adobe, Notion, Figma)
+   - Meals & Coffee: $610 (renamed from Dining Out)
+   New
+   - Contractors: $4,200 (Upwork, 2 Venmo payments)
+   Remove (no spending)
+   - Groceries, Shopping, Insurance
+   ```
+   Options: "Yes, looks right (Recommended)" (with that preview) / "I want to change some". Never ask
+   this question without the list in it. Changes: ask what, one or two questions at a time, and show
+   the updated list again before applying it.
 4. Apply it:
    - `categories` in data/config.json: their list, plus the ones the engine needs that aren't spending:
      **Income, Card Payments, Transfers, Reimbursed, Gift** (and **Owner's Pay** on a business
