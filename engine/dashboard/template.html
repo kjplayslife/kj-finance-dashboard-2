@@ -707,6 +707,19 @@ function momData(key){
   return {months:ms,values:ms.map(f)};
 }
 let momChart=null,momDrawn=null;
+// The picked month on the line charts gets a month + amount tag above its point (in the chart's color)
+// and a dashed guide line down to the month, so it's easy to see which point the cards above are showing.
+function pickedMarker(idx,label,color){
+  // Final position (getProps(..., true)), so the tag sits still while the line animates in.
+  const pt=c=>{const e=idx>=0&&label?c.getDatasetMeta(0).data[idx]:null;return e?e.getProps(["x","y"],true):null};
+  return {id:"pickedMarker",
+    beforeDatasetsDraw(c){const p=pt(c);if(!p)return;const a=c.chartArea,x=c.ctx;
+      x.save();x.setLineDash([4,4]);x.strokeStyle="#aaa39a";x.lineWidth=1;x.beginPath();x.moveTo(p.x,a.top);x.lineTo(p.x,a.bottom);x.stroke();x.restore()},
+    afterDatasetsDraw(c){const p=pt(c);if(!p)return;const x=c.ctx;
+      x.save();x.font="600 11px -apple-system,BlinkMacSystemFont,sans-serif";const w=x.measureText(label).width+12,h=20,a=c.chartArea;
+      const bx=Math.max(a.left,Math.min(p.x-w/2,a.right-w)),by=Math.max(a.top-14,p.y-h-12);
+      x.fillStyle=color;x.beginPath();x.roundRect(bx,by,w,h,5);x.fill();x.fillStyle="#fff";x.textAlign="center";x.textBaseline="middle";x.fillText(label,bx+w/2,by+h/2);x.restore()}};
+}
 function renderMom(){
   if(!chartVisible("mom-line",renderMom))return;
   const s=MOM.find(x=>x.key===momKey);const d=momData(momKey);
@@ -738,7 +751,9 @@ function renderMom(){
   // Animate only when a different card's chart is picked (or the first draw); a new month just redraws.
   const anim=!momChart||momDrawn!==momKey;momDrawn=momKey;
   const ctx=document.getElementById("mom-line");if(momChart)momChart.destroy();
-  momChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[ds]},options:{animation:anim?undefined:false,responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(isNet&&c.parsed.y>0?"+":"")+money(c.parsed.y)}}}}});
+  const pIdx=d.months.indexOf(curMonth),pVal=pIdx>=0?d.values[pIdx]:0;
+  const pLbl=pIdx>=0?mLabel(curMonth)+" "+(isNet&&pVal>0?"+":"")+money0(pVal):"";
+  momChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[ds]},plugins:[pickedMarker(pIdx,pLbl,isNet?(pVal>=0?"#2f6f4e":"#b8423a"):s.color)],options:{animation:anim?undefined:false,layout:{padding:{top:16}},responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(isNet&&c.parsed.y>0?"+":"")+money(c.parsed.y)}}}}});
   let note="";
   if(momKey==="savings"){
     note="Balance at the end of each month"+(pi>0?"; * "+mLabel(PARTIAL)+" = today":"")+".";
@@ -1028,7 +1043,7 @@ function renderTrend(){
     const GRAY="#aaa39a",isP=c=>c.p1DataIndex===pi;
     const seg={borderDash:c=>isP(c)?[6,5]:undefined,borderColor:c=>isP(c)?GRAY:undefined,backgroundColor:c=>isP(c)?"rgba(138,133,122,.14)":undefined};
     trendChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[{label:trendCat,data:vals,borderColor:col,backgroundColor:col+"33",fill:true,cubicInterpolationMode:"monotone",segment:pi>0?seg:undefined,
-      pointBorderColor:TM.map(m=>m===PARTIAL?GRAY:col),pointBackgroundColor:TM.map(m=>m===PARTIAL?"rgba(170,163,154,.35)":col+"33"),pointRadius:TM.map(m=>m===txMonth?7:4),pointHoverRadius:8}]},options:{animation:anim?undefined:false,responsive:true,maintainAspectRatio:false,scales:{x:{ticks:monthTicks(TM)},y:{beginAtZero:true,ticks:{callback:v=>"$"+v.toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.y)}}}}});
+      pointBorderColor:TM.map(m=>m===PARTIAL?GRAY:col),pointBackgroundColor:TM.map(m=>m===PARTIAL?"rgba(170,163,154,.35)":col+"33"),pointRadius:TM.map(m=>m===txMonth?7:4),pointHoverRadius:8}]},plugins:[pickedMarker(TM.indexOf(txMonth),txMonth==="All"?"":mLabel(txMonth)+" "+money0(vals[TM.indexOf(txMonth)]),col)],options:{animation:anim?undefined:false,layout:{padding:{top:16}},responsive:true,maintainAspectRatio:false,scales:{x:{ticks:monthTicks(TM)},y:{beginAtZero:true,ticks:{callback:v=>"$"+v.toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.y)}}}}});
     note.textContent=partialNote;
     return;
   }
