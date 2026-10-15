@@ -706,7 +706,7 @@ function momData(key){
   const ms=MONTHS.filter(keep);
   return {months:ms,values:ms.map(f)};
 }
-let momChart=null;
+let momChart=null,momDrawn=null;
 function renderMom(){
   if(!chartVisible("mom-line",renderMom))return;
   const s=MOM.find(x=>x.key===momKey);const d=momData(momKey);
@@ -735,8 +735,10 @@ function renderMom(){
     document.getElementById("mom-partial-lbl").textContent="Show "+mLabel(PARTIAL);box.checked=momPartialShown();
     box.onchange=()=>{momShowPartial=box.checked;renderMom()};
   }
+  // Animate only when a different card's chart is picked (or the first draw); a new month just redraws.
+  const anim=!momChart||momDrawn!==momKey;momDrawn=momKey;
   const ctx=document.getElementById("mom-line");if(momChart)momChart.destroy();
-  momChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[ds]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(isNet&&c.parsed.y>0?"+":"")+money(c.parsed.y)}}}}});
+  momChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[ds]},options:{animation:anim?undefined:false,responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(isNet&&c.parsed.y>0?"+":"")+money(c.parsed.y)}}}}});
   let note="";
   if(momKey==="savings"){
     note="Balance at the end of each month"+(pi>0?"; * "+mLabel(PARTIAL)+" = today":"")+".";
@@ -977,7 +979,7 @@ function wireEdits(boxId){
 function dataChanged(){renderKPI();renderMom();renderTransfers();renderBudget();document.dispatchEvent(new CustomEvent("dataChanged"))}
 // ---------- Spending by month (top of Transactions): by need (stacked bars) or by category ----------
 // The category chart starts on Subscriptions (or the first spending category); a category you click is remembered.
-let trendChart=null,trendCat=lsGet(LS.trend,"Subscriptions");
+let trendChart=null,trendDrawn=null,trendCat=lsGet(LS.trend,"Subscriptions");
 if(SPEND_CATS.indexOf(trendCat)<0)trendCat=SPEND_CATS.indexOf("Subscriptions")>=0?"Subscriptions":SPEND_CATS[0];
 let tView="cat";  // always opens on By category; By need is one click away
 // The unfinished month shows on the chart when it's the month picked above (or All months), and is
@@ -1012,6 +1014,8 @@ function wireTrendControls(){
 function monthTicks(TM){return {color:c=>TM[c.index]===txMonth?"#2a2a2a":"#8a857a",font:c=>({weight:TM[c.index]===txMonth?"700":"400"})}}
 function renderTrend(){
   if(!chartVisible("trend-line",renderTrend))return;
+  // Animate only when what the chart shows changes (first draw, category, By need); a new month just redraws.
+  const tKey=tView+"|"+trendCat,anim=!trendChart||trendDrawn!==tKey;trendDrawn=tKey;
   const ctx=document.getElementById("trend-line");if(trendChart)trendChart.destroy();
   const TM=trendMonths();
   const labels=TM.map(m=>mLabel(m)+(m===PARTIAL?"*":""));
@@ -1024,7 +1028,7 @@ function renderTrend(){
     const GRAY="#aaa39a",isP=c=>c.p1DataIndex===pi;
     const seg={borderDash:c=>isP(c)?[6,5]:undefined,borderColor:c=>isP(c)?GRAY:undefined,backgroundColor:c=>isP(c)?"rgba(138,133,122,.14)":undefined};
     trendChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[{label:trendCat,data:vals,borderColor:col,backgroundColor:col+"33",fill:true,cubicInterpolationMode:"monotone",segment:pi>0?seg:undefined,
-      pointBorderColor:TM.map(m=>m===PARTIAL?GRAY:col),pointBackgroundColor:TM.map(m=>m===PARTIAL?"rgba(170,163,154,.35)":col+"33"),pointRadius:TM.map(m=>m===txMonth?7:4),pointHoverRadius:8}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{ticks:monthTicks(TM)},y:{beginAtZero:true,ticks:{callback:v=>"$"+v.toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.y)}}}}});
+      pointBorderColor:TM.map(m=>m===PARTIAL?GRAY:col),pointBackgroundColor:TM.map(m=>m===PARTIAL?"rgba(170,163,154,.35)":col+"33"),pointRadius:TM.map(m=>m===txMonth?7:4),pointHoverRadius:8}]},options:{animation:anim?undefined:false,responsive:true,maintainAspectRatio:false,scales:{x:{ticks:monthTicks(TM)},y:{beginAtZero:true,ticks:{callback:v=>"$"+v.toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.y)}}}}});
     note.textContent=partialNote;
     return;
   }
@@ -1039,7 +1043,7 @@ function renderTrend(){
     totals.forEach((v,i)=>{const bar=meta.data[i];if(!bar||!v)return;if(room<32&&TM[i]!==txMonth)return;
       const txt=room>=56?money0(v):(v>=1000?"$"+(v/1000).toFixed(1)+"k":money0(v));
       ctx.save();ctx.font="600 "+(room>=56?11:10)+"px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillStyle="#5a564e";ctx.textAlign="center";ctx.fillText(txt,bar.x,bar.y-6);ctx.restore()})}};
-  trendChart=new Chart(ctx,{type:"bar",data:{labels:labels,datasets:datasets},plugins:[totalLabels],options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
+  trendChart=new Chart(ctx,{type:"bar",data:{labels:labels,datasets:datasets},plugins:[totalLabels],options:{animation:anim?undefined:false,responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
     scales:{x:{stacked:true,grid:{display:false},ticks:monthTicks(TM)},y:{stacked:true,beginAtZero:true,ticks:{callback:v=>"$"+v.toLocaleString()}}},
     plugins:{legend:{position:"bottom",reverse:true,labels:{usePointStyle:true,pointStyle:"circle",boxWidth:8,boxHeight:8,padding:16}},
       tooltip:{mode:"index",itemSort:(a,b)=>b.datasetIndex-a.datasetIndex,callbacks:{
