@@ -60,6 +60,10 @@ html{touch-action:pan-x pan-y}
 .kpi .lbl{font-size:13px;color:#8a857a;font-weight:600}
 .kpi .val{font-size:clamp(20px,2.4vw,26px);font-weight:700;margin:4px 0 2px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .kpi .note{font-size:11px;color:#aaa39a}
+/* The picked month's tag and guide line on the line charts (see pickedMarker). Line behind the chart, tag in front. */
+#mom-line,#trend-line{position:relative;z-index:1}
+.pm-line{position:absolute;z-index:0;width:0;border-left:1px dashed #aaa39a;pointer-events:none;opacity:0}
+.pm-tag{position:absolute;z-index:2;transform:translateX(-50%);height:20px;line-height:20px;padding:0 6px;border-radius:5px;color:#fff;font-size:11px;font-weight:600;white-space:nowrap;pointer-events:none;opacity:0}
 .orange{color:#b86a2b}.gray{color:#6a655c}.purple{color:#8a6fb0}
 /* Cards double as the chart picker: light border on hover, the chart's color when it's the one shown. */
 .kpi.pick{cursor:pointer;transition:border-color .12s,box-shadow .12s}
@@ -708,25 +712,27 @@ function momData(key){
 }
 let momChart=null,momDrawn=null;
 // The picked month on the line charts gets a month + amount tag above its point (in the chart's color; gray
-// for the unfinished month, like its stretch of the line) and a dashed guide line down to the month. Both wait
-// for the chart's animation to finish, then fade in. The tag stays centered on its point, even at the edges.
-function pickedMarker(idx,label,color,month){
+// for the unfinished month, like its stretch of the line) and a dashed guide line down to the month. They are
+// small HTML pieces over the canvas (.pm-tag / .pm-line), so the browser fades them in smoothly: right away when
+// the chart doesn't animate, or as the line arrives when it does. The tag stays centered on its point.
+function pickedMarker(idx,label,color,month,anim){
   if(month===PARTIAL)color="#8a857a";
-  const pt=c=>idx>=0&&label?c.getDatasetMeta(0).data[idx]:null;
-  let start=null,waiting=false;
-  // While the line is still animating, check each frame and redraw once it's done; then fade in over 250ms.
-  const alpha=c=>{
-    if(Chart.animator.running(c)){start=null;if(!waiting){waiting=true;const w=()=>{if(!c.canvas)return;if(Chart.animator.running(c))requestAnimationFrame(w);else{waiting=false;c.draw()}};requestAnimationFrame(w)}return 0}
-    if(start===null)start=performance.now();
-    const k=Math.min(1,(performance.now()-start)/250);if(k<1)requestAnimationFrame(()=>{if(c.canvas)c.draw()});return k;
-  };
+  let started=false;
+  const els=c=>{const box=c.canvas.parentNode;let t=box.querySelector(".pm-tag"),l=box.querySelector(".pm-line");
+    if(!t){l=document.createElement("div");l.className="pm-line";t=document.createElement("div");t.className="pm-tag";box.appendChild(l);box.appendChild(t)}
+    return [t,l]};
   return {id:"pickedMarker",
-    beforeDatasetsDraw(c){const p=pt(c);if(!p)return;const k=alpha(c);if(!k)return;const a=c.chartArea,x=c.ctx;
-      x.save();x.globalAlpha=k;x.setLineDash([4,4]);x.strokeStyle="#aaa39a";x.lineWidth=1;x.beginPath();x.moveTo(p.x,a.top);x.lineTo(p.x,a.bottom);x.stroke();x.restore()},
-    afterDatasetsDraw(c){const p=pt(c);if(!p)return;const k=alpha(c);if(!k)return;const x=c.ctx;
-      x.save();x.globalAlpha=k;x.font="600 11px -apple-system,BlinkMacSystemFont,sans-serif";const w=x.measureText(label).width+12,h=20,a=c.chartArea;
-      const bx=Math.max(1,Math.min(p.x-w/2,c.width-w-1)),by=Math.max(a.top-14,p.y-h-12);
-      x.fillStyle=color;x.beginPath();x.roundRect(bx,by,w,h,5);x.fill();x.fillStyle="#fff";x.textAlign="center";x.textBaseline="middle";x.fillText(label,bx+w/2,by+h/2);x.restore()}};
+    afterDatasetsDraw(c){
+      const [t,l]=els(c);const e=idx>=0&&label?c.getDatasetMeta(0).data[idx]:null;
+      if(!e){t.hidden=l.hidden=true;return}
+      const p=e.getProps(["x","y"],true),a=c.chartArea;
+      t.hidden=l.hidden=false;t.textContent=label;t.style.background=color;
+      t.style.left=p.x+"px";t.style.top=Math.max(a.top-14,p.y-32)+"px";
+      l.style.left=p.x+"px";l.style.top=a.top+"px";l.style.height=(a.bottom-a.top)+"px";
+      if(!started){started=true;
+        [t,l].forEach(x=>{x.getAnimations().forEach(a=>a.cancel());
+          x.animate([{opacity:0},{opacity:1}],{duration:180,delay:anim?380:0,easing:"ease-out",fill:"forwards"})})}
+    }};
 }
 // Room on the right so a tag on the last point can sit centered on it (it may hang past the chart's edge).
 function tagPad(idx,n){return {top:16,right:idx>=0&&idx===n-1?30:0}}
@@ -763,7 +769,7 @@ function renderMom(){
   const ctx=document.getElementById("mom-line");if(momChart)momChart.destroy();
   const pIdx=d.months.indexOf(curMonth),pVal=pIdx>=0?d.values[pIdx]:0;
   const pLbl=pIdx>=0?mLabel(curMonth)+" "+(isNet&&pVal>0?"+":"")+money0(pVal):"";
-  momChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[ds]},plugins:[pickedMarker(pIdx,pLbl,isNet?(pVal>=0?"#2f6f4e":"#b8423a"):s.color,curMonth)],options:{animation:anim?undefined:false,layout:{padding:tagPad(pIdx,d.months.length)},responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(isNet&&c.parsed.y>0?"+":"")+money(c.parsed.y)}}}}});
+  momChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[ds]},plugins:[pickedMarker(pIdx,pLbl,isNet?(pVal>=0?"#2f6f4e":"#b8423a"):s.color,curMonth,anim)],options:{animation:anim?undefined:false,layout:{padding:tagPad(pIdx,d.months.length)},responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(isNet&&c.parsed.y>0?"+":"")+money(c.parsed.y)}}}}});
   let note="";
   if(momKey==="savings"){
     note="Balance at the end of each month"+(pi>0?"; * "+mLabel(PARTIAL)+" = today":"")+".";
@@ -1053,7 +1059,7 @@ function renderTrend(){
     const GRAY="#aaa39a",isP=c=>c.p1DataIndex===pi;
     const seg={borderDash:c=>isP(c)?[6,5]:undefined,borderColor:c=>isP(c)?GRAY:undefined,backgroundColor:c=>isP(c)?"rgba(138,133,122,.14)":undefined};
     trendChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[{label:trendCat,data:vals,borderColor:col,backgroundColor:col+"33",fill:true,cubicInterpolationMode:"monotone",segment:pi>0?seg:undefined,
-      pointBorderColor:TM.map(m=>m===PARTIAL?GRAY:col),pointBackgroundColor:TM.map(m=>m===PARTIAL?"rgba(170,163,154,.35)":col+"33"),pointRadius:TM.map(m=>m===txMonth?7:4),pointHoverRadius:8}]},plugins:[pickedMarker(TM.indexOf(txMonth),txMonth==="All"?"":mLabel(txMonth)+" "+money0(vals[TM.indexOf(txMonth)]),col,txMonth)],options:{animation:anim?undefined:false,layout:{padding:tagPad(TM.indexOf(txMonth),TM.length)},responsive:true,maintainAspectRatio:false,scales:{x:{ticks:monthTicks(TM)},y:{beginAtZero:true,ticks:{callback:v=>"$"+v.toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.y)}}}}});
+      pointBorderColor:TM.map(m=>m===PARTIAL?GRAY:col),pointBackgroundColor:TM.map(m=>m===PARTIAL?"rgba(170,163,154,.35)":col+"33"),pointRadius:TM.map(m=>m===txMonth?7:4),pointHoverRadius:8}]},plugins:[pickedMarker(TM.indexOf(txMonth),txMonth==="All"?"":mLabel(txMonth)+" "+money0(vals[TM.indexOf(txMonth)]),col,txMonth,anim)],options:{animation:anim?undefined:false,layout:{padding:tagPad(TM.indexOf(txMonth),TM.length)},responsive:true,maintainAspectRatio:false,scales:{x:{ticks:monthTicks(TM)},y:{beginAtZero:true,ticks:{callback:v=>"$"+v.toLocaleString()}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.y)}}}}});
     note.textContent=partialNote;
     return;
   }
