@@ -282,6 +282,11 @@ tbody tr:nth-child(even){background:#fcfbf8}
 .seg button+button{border-left:1px solid #e6e4dd}
 .seg button:hover{background:#faf9f6}
 .seg button.on{background:#2f6f4e;color:#fff}
+/* Transactions: with an account picked, what was spent on it in the picked month (sum of the rating strip). */
+.acct-sum{display:flex;justify-content:space-between;align-items:baseline;gap:2px 12px;flex-wrap:wrap;margin:0 0 12px;padding:10px 14px;border:1px solid #e6e4dd;border-radius:10px;background:#faf9f6;font-size:13px;color:#6a655c}
+.acct-sum b{font-weight:600;color:#2a2a2a}
+.acct-sum .amt{font-size:18px;font-weight:700;color:#2a2a2a}
+.acct-sum .cnt{font-size:12px;color:#aaa39a;margin-left:6px;font-weight:500}
 .needbar{border:1px solid #e6e4dd;border-radius:10px;overflow:hidden;margin-bottom:14px}
 .nsegs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 .nseg{position:relative;display:flex;flex-direction:column;gap:3px;padding:11px 14px 12px;border:0;border-right:1px solid #f0eee8;background:#fff;font:inherit;color:inherit;text-align:left;cursor:pointer;transition:background .12s}
@@ -419,6 +424,7 @@ tbody tr:nth-child(even){background:#fcfbf8}
           <select id="tx-account-filter"><option value="">All accounts</option></select>
         </div>
       </div>
+      <div class="acct-sum" id="acct-sum" hidden></div>
       <div class="needbar" id="need-summary"></div>
       <div style="overflow-x:auto">
       <table id="tx-table">
@@ -968,8 +974,14 @@ function needCell(t){
   return '<div class="need" role="group" aria-label="Need rating">'+[1,2,3].map(n=>'<button type="button" class="nb n'+n+'" data-id="'+esc(t.id)+'" data-need="'+n+'">'+n+'</button>').join("")+'</div>';
 }
 function renderNeedSummary(){
-  // Spending in the selected month split by rating. Each section filters the table; click again to show all.
-  const rows=(txMonth==="All"?FIN.transactions:monthTx(txMonth)).filter(isRateable);
+  // Spending in the selected month (and account, if one is picked) split by rating. Each section filters the
+  // table; click again to show all.
+  const af=document.getElementById("tx-account-filter").value;
+  const rows=(txMonth==="All"?FIN.transactions:monthTx(txMonth)).filter(t=>isRateable(t)&&(!af||t.accountLabel===af));
+  const sum=document.getElementById("acct-sum");sum.hidden=!af;
+  if(af){const total=rows.reduce((s,t)=>s-t.amount,0);
+    const when=txMonth==="All"?"across all months":"in "+mFull(txMonth)+(txMonth===PARTIAL?" so far":"");
+    sum.innerHTML='<span>Spent on <b>'+esc(af)+'</b> '+when+'</span><span class="amt">'+money(total)+'<span class="cnt">'+rows.length+' purchase'+(rows.length===1?"":"s")+'</span></span>'}
   const tot=[0,0,0,0],cnt=[0,0,0,0];rows.forEach(t=>{const v=getNeed(t);tot[v]+=-t.amount;cnt[v]++});
   const order=[[1,"1 Want"],[2,"2 Could skip"],[3,"3 Need"],[0,"Not rated"]];
   document.getElementById("need-summary").innerHTML='<div class="nsegs">'+order.map(([n,lbl])=>{const on=needFilter===n;
