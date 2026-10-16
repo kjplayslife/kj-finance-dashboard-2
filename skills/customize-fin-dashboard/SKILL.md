@@ -61,6 +61,8 @@ files, scripts or publishing; that's all you.
   `setup_option`.
 - `data/category-rules.json`: ordered rules, first match wins; their own rules go at the top.
   `{"match": "REGEX", "category": "...", "display": "Clean Name", "when": "in"|"out", "amount": 12.34}`.
+  Same bank text for several things (e.g. many "SKOOL.COM" memberships)? Add `"days": [first, last]`
+  (day of month) and/or `"from": "YYYY-MM-DD"` so each rule matches one of them by amount and date.
 - `data/overrides.json`: one-off fixes by transaction id:
   `{"byId": {"<id>": {"category", "display", "date", "need"}}}`.
 - `dashboard/template.html`: the page itself (layout, colors, wording, charts, tabs).

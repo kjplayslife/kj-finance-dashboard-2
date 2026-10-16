@@ -230,6 +230,12 @@ def apply_rules(r):
             continue
         if "amount" in rule and abs(abs(r["amount"]) - rule["amount"]) > 0.005:
             continue
+        # Optional: "days": [first, last] day of the month, "from": "YYYY-MM-DD" (rows on/after it).
+        # Tells apart charges with identical bank text (e.g. several Skool memberships).
+        if "days" in rule and not (rule["days"][0] <= int(r["date"][8:10]) <= rule["days"][1]):
+            continue
+        if "from" in rule and r["date"] < rule["from"]:
+            continue
         if rule["_re"].search(r["rawDescription"]):
             return rule
     return None
@@ -371,7 +377,8 @@ def month_end_balances(rows, accounts, months):
     return {"months": months, "accounts": out}
 
 
-BILL_CATEGORIES = {"Rent and Utilities", "Subscriptions", "Gas & Auto", "Fees", "Other"}
+BILL_CATEGORIES = {"Rent and Utilities", "Subscriptions", "Gas & Auto", "Fees", "Other",
+                   "Software & Tools", "Phone", "Health Insurance", "Bank & Processing Fees"}
 NOT_BILLS = re.compile(r"^(Venmo|Zelle|PayPal|Cash App|Cash Withdrawal|Check|Gas|Restaurant|Amazon)$", re.I)
 
 

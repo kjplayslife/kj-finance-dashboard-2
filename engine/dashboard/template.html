@@ -510,7 +510,7 @@ if(FIN.verses===false)document.querySelectorAll(".verse-footer").forEach(f=>f.re
 const MONTHS = FIN.months;
 const NON_SPEND = {}; FIN.nonSpend.forEach(c=>NON_SPEND[c]=1);
 const SPEND_CATS = FIN.categories.filter(c=>!NON_SPEND[c]);
-const CAT_COLORS = {"Groceries":"#2f6f4e","Dining Out":"#e07a5f","Shopping":"#d96ba0","Subscriptions":"#3c8aa8","Rent and Utilities":"#8a6fb0","Gas & Auto":"#c89b1e","Health & Fitness":"#4caf88","Personal Care":"#e0a3c4","Tithe":"#b86a2b","Fees":"#b8423a","Other":"#b0a89a","Card Payments":"#9aa0a6","Transfers":"#7a8aa0","Income":"#2f6f4e","Reimbursed":"#c9c2b6","Gift":"#5b8fb9","Family Wires":"#a89f91"};
+const CAT_COLORS = {"Software & Tools":"#3c8aa8","Contractors":"#c89b1e","Accounting & Legal":"#7a6fb0","Education & Coaching":"#4caf88","Health Insurance":"#5b8fb9","Phone":"#8a6fb0","Meals & Coffee":"#e07a5f","Travel":"#d96ba0","Office & Supplies":"#a0785a","Bank & Processing Fees":"#b8423a","Taxes & Licenses":"#6a655c","Groceries":"#2f6f4e","Dining Out":"#e07a5f","Shopping":"#d96ba0","Subscriptions":"#3c8aa8","Rent and Utilities":"#8a6fb0","Gas & Auto":"#c89b1e","Health & Fitness":"#4caf88","Personal Care":"#e0a3c4","Tithe":"#b86a2b","Fees":"#b8423a","Other":"#b0a89a","Card Payments":"#9aa0a6","Transfers":"#7a8aa0","Income":"#2f6f4e","Reimbursed":"#c9c2b6","Gift":"#5b8fb9","Family Wires":"#a89f91"};
 const LS={momPartial:"kj-pf2:mom-partial",showPartial:"kj-pf2:show-partial",hidePartialNeed:"kj-pf2:hide-partial-need",recap:"kj-pf2:recap",edits:"kj-pf2:edits",ovm:"kj-pf2:ov-month",bud:"kj-pf2:budgets",xfer:"kj-pf2:xfer",trend:"kj-pf2:trend",mom:"kj-pf2:mom"};
 const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -1011,7 +1011,7 @@ function dataChanged(){renderKPI();renderMom();renderTransfers();renderBudget();
 // ---------- Spending by month (top of Transactions): by need (stacked bars) or by category ----------
 // The category chart starts on Subscriptions (or the first spending category); a category you click is remembered.
 let trendChart=null,trendDrawn=null,trendCat=lsGet(LS.trend,"Subscriptions");
-if(SPEND_CATS.indexOf(trendCat)<0)trendCat=SPEND_CATS.indexOf("Subscriptions")>=0?"Subscriptions":SPEND_CATS[0];
+if(SPEND_CATS.indexOf(trendCat)<0)trendCat=["Subscriptions","Software & Tools"].find(c=>SPEND_CATS.indexOf(c)>=0)||SPEND_CATS[0];
 let tView="cat";  // always opens on By category; By need is one click away
 // The unfinished month shows on the chart when it's the month picked above (or All months), and is
 // hidden when a finished month is picked; the "Show <month>" box overrides that until the month changes.
@@ -1390,7 +1390,7 @@ function renderInsights(){
   const plan=[];let save=0;
   over.slice(0,3).forEach(c=>{const s2=cats[c]-budgets[c];save+=s2;plan.push("Keep <b>"+c+"</b> to its "+money0(budgets[c])+" budget (saves "+money0(s2)+").")});
   if(want>0){const s2=want/2;save+=s2;plan.push("Cut Wants in half (saves about "+money0(s2)+").")}
-  const subs=monthTx(m).filter(t=>t.amount<0&&getCat(t)==="Subscriptions");
+  const subs=monthTx(m).filter(t=>t.amount<0&&(getCat(t)==="Subscriptions"||getCat(t)==="Software & Tools"));
   if(subs.length){const tot=subs.reduce((s,t)=>s-t.amount,0);plan.push("Review subscriptions: "+money0(tot)+" this month across "+subs.length+" ("+subs.slice(0,4).map(t=>esc(t.displayDescription)).join(", ")+(subs.length>4?", …":"")+"). Cancel any you don't use.")}
   if(budgets["Dining Out"]>0&&(cats["Dining Out"]||0)>0){const n=monthTx(m).filter(t=>t.amount<0&&getCat(t)==="Dining Out").length;plan.push("Dining out: "+n+" times for "+money0(cats["Dining Out"])+" (about "+money0(cats["Dining Out"]/n)+" each). Planning a few more meals at home is the easiest win.")}
   let html=plan.length?'<ul class="ins-list">'+plan.map(x=>"<li>"+x+"</li>").join("")+"</ul>":"";
