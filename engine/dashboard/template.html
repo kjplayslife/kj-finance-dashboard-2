@@ -287,6 +287,18 @@ tbody tr:nth-child(even){background:#fcfbf8}
 .acct-sum b{font-weight:600;color:#2a2a2a}
 .acct-sum .amt{font-size:18px;font-weight:700;color:#2a2a2a}
 .acct-sum .cnt{font-size:12px;color:#aaa39a;margin-left:6px;font-weight:500}
+.acct-sum[hidden],.inc-sum[hidden],.needbar[hidden]{display:none}
+/* Income breakdown (category filter = Income): total, then each source with its share. */
+.inc-sum{margin:0 0 12px;padding:12px 14px;border:1px solid rgba(47,111,78,.25);border-radius:10px;background:rgba(47,111,78,.05)}
+.inc-sum .inc-top{display:flex;justify-content:space-between;align-items:baseline;gap:4px 12px;flex-wrap:wrap;font-size:13px;color:#5a564e;margin-bottom:8px}
+.inc-sum .inc-top .amt{font-size:18px;font-weight:700;color:#2f6f4e}
+.inc-src{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;padding:5px 0;border-top:1px solid rgba(47,111,78,.12);font-size:13px}
+.inc-src .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inc-src .nm small{color:#aaa39a;margin-left:6px}
+.inc-src .v{font-weight:600;font-variant-numeric:tabular-nums;color:#2a2a2a;text-align:right}
+.inc-src .bar{grid-column:1/-1;height:4px;border-radius:2px;background:rgba(47,111,78,.1);overflow:hidden}
+.inc-src .bar span{display:block;height:100%;background:#2f6f4e;opacity:.6}
+@media(max-width:640px){.txhead .fgroup{width:100%}.txhead .fgroup>*{flex:1 1 calc(50% - 8px);min-width:0;font-size:16px}}
 .needbar{border:1px solid #e6e4dd;border-radius:10px;overflow:hidden;margin-bottom:14px}
 .nsegs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 .nseg{position:relative;display:flex;flex-direction:column;gap:3px;padding:11px 14px 12px;border:0;border-right:1px solid #f0eee8;background:#fff;font:inherit;color:inherit;text-align:left;cursor:pointer;transition:background .12s}
@@ -422,8 +434,15 @@ tbody tr:nth-child(even){background:#fcfbf8}
         <div class="fgroup">
           <input type="text" id="tx-search" placeholder="Search..." title="Search names and notes">
           <select id="tx-account-filter"><option value="">All accounts</option></select>
+          <select id="tx-cat-filter" aria-label="Show"><option value="">All categories</option><option value="__income">Income only</option><option value="__spend">Spending only</option></select>
+          <select id="tx-sort" aria-label="Sort by">
+            <option value="date:-1">Newest first</option><option value="date:1">Oldest first</option>
+            <option value="amt:-1">Most money in</option><option value="amt:1">Most money out</option>
+            <option value="desc:1">Name A–Z</option><option value="cat:1">Category</option><option value="acct:1">Account</option>
+          </select>
         </div>
       </div>
+      <div class="inc-sum" id="inc-sum" hidden></div>
       <div class="acct-sum" id="acct-sum" hidden></div>
       <div class="needbar" id="need-summary"></div>
       <div style="overflow-x:auto">
@@ -882,6 +901,27 @@ function fillAccountFilter(){
   const sel=document.getElementById("tx-account-filter");
   const accts=[...new Set(FIN.transactions.map(t=>t.accountLabel))].sort();
   accts.forEach(a=>{const o=document.createElement("option");o.value=a;o.textContent=a;sel.appendChild(o)});
+  // Category filter: Income only / Spending only, then every category.
+  const cs=document.getElementById("tx-cat-filter");
+  FIN.categories.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;cs.appendChild(o)});
+}
+function catFilterMatch(t,cf){
+  if(!cf)return true;
+  if(cf==="__income")return getCat(t)==="Income"&&t.amount>0;
+  if(cf==="__spend")return t.amount<0&&!NON_SPEND[getCat(t)];
+  return getCat(t)===cf;
+}
+// Where the month's income came from: one line per source (its name on the dashboard), biggest first.
+function renderIncomeSummary(rows){
+  const box=document.getElementById("inc-sum");const cf=document.getElementById("tx-cat-filter").value;
+  const show=cf==="__income"||cf==="Income";box.hidden=!show;if(!show)return;
+  const inc=rows.filter(t=>getCat(t)==="Income"&&t.amount>0);
+  const by={};inc.forEach(t=>{const k=t.displayDescription.replace(/\s*\(.*\)$/,"");(by[k]=by[k]||{v:0,n:0});by[k].v+=t.amount;by[k].n++});
+  const total=inc.reduce((s,t)=>s+t.amount,0);
+  const when=txMonth==="All"?"across all months":"in "+mFull(txMonth)+(txMonth===PARTIAL?" so far":"");
+  const list=Object.entries(by).sort((a,b)=>b[1].v-a[1].v);
+  box.innerHTML='<div class="inc-top"><span>Income '+when+'</span><span class="amt">'+money(total)+'</span></div>'+
+    (list.length?list.map(([k,o])=>'<div class="inc-src"><span class="nm">'+esc(k)+'<small>'+o.n+' deposit'+(o.n===1?"":"s")+'</small></span><span class="v">'+money(o.v)+'</span><span class="bar"><span style="width:'+(total>0?Math.round(o.v/total*100):0)+'%"></span></span></div>').join(""):'<div class="inc-src"><span class="nm">No income in this period.</span></div>');
 }
 // Every category dropdown ends with "+ New category", which explains that Claude adds categories.
 function catOptions(sel){return FIN.categories.map(c=>'<option value="'+c+'"'+(c===sel?" selected":"")+'>'+c+'</option>').join("")+'<option value="__new">+ New category</option>'}
@@ -901,6 +941,11 @@ function renderTxTable(){
   if(search)rows=rows.filter(t=>(t.displayDescription+" "+t.rawDescription+" "+getNote(t)).toLowerCase().indexOf(search)>=0);
   if(af)rows=rows.filter(t=>t.accountLabel===af);
   if(needFilter!==null)rows=rows.filter(t=>isRateable(t)&&getNeed(t)===needFilter);
+  const cf=document.getElementById("tx-cat-filter").value;
+  rows=rows.filter(t=>catFilterMatch(t,cf));
+  renderIncomeSummary(rows);
+  document.getElementById("need-summary").hidden=cf==="__income"||cf==="Income";
+  const ss=document.getElementById("tx-sort"),sv=txSort.key+":"+txSort.dir;if([...ss.options].some(o=>o.value===sv))ss.value=sv;
   const k=txSort.key,dir=txSort.dir;
   rows.sort((a,b)=>{let av,bv;
     if(k==="date"){av=a.date;bv=b.date}
@@ -997,7 +1042,12 @@ function wireNeedFilter(){
     needFilter=needFilter===n?null:n;renderTxTable();
   });
 }
-function wireFilters(){["tx-search"].forEach(id=>document.getElementById(id).oninput=renderTxTable);["tx-account-filter"].forEach(id=>document.getElementById(id).onchange=renderTxTable)}
+function wireFilters(){["tx-search"].forEach(id=>document.getElementById(id).oninput=renderTxTable);["tx-account-filter","tx-cat-filter"].forEach(id=>document.getElementById(id).onchange=renderTxTable);
+  // Sort menu: works on phones, where the column headers are hidden.
+  document.getElementById("tx-sort").onchange=e=>{const [k,d]=e.target.value.split(":");txSort={key:k,dir:+d};renderTxTable()};
+  // "Most money in/out" sort by the signed amount; switching to Income sorts biggest deposit first.
+  document.getElementById("tx-cat-filter").addEventListener("change",e=>{if(e.target.value==="__income"||e.target.value==="Income"){txSort={key:"amt",dir:-1};renderTxTable()}});
+}
 const TX_BY_ID={};FIN.transactions.forEach(t=>TX_BY_ID[t.id]=t);
 function wireTableEdits(){wireEdits("tx-body")}
 function wireEdits(boxId){
