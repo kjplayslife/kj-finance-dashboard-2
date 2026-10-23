@@ -1125,6 +1125,8 @@ function renderTrend(){
     note.textContent=partialNote;
     return;
   }
+  // The category line's month tag and guide line stay behind when switching to bars; hide them.
+  ctx.parentNode.querySelectorAll(".pm-tag,.pm-line").forEach(x=>{x.getAnimations().forEach(a=>a.cancel());x.hidden=true});
   // By need: each month's spending stacked Need / Could skip / Want / Not rated (bar height = total spent).
   const parts=[{n:3,lbl:"Need",c:"#2f6f4e"},{n:2,lbl:"Could skip",c:"#c89b1e"},{n:1,lbl:"Want",c:"#b8423a"},{n:0,lbl:"Not rated",c:"#d9d4c9"}];
   const sums=TM.map(m=>{const o=[0,0,0,0];monthTx(m).forEach(t=>{if(isRateable(t))o[getNeed(t)]+=-t.amount});return o});
